@@ -12,7 +12,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     gpib = new PrologixGPIB(this);
     QHostAddress addr = QHostAddress("192.168.178.153");
+    QObject::connect(gpib, &PrologixGPIB::response, this, [=](QString resp){qDebug() << resp;});
     gpib->init(addr);
+
 }
 
 MainWindow::~MainWindow()
@@ -25,5 +27,11 @@ void MainWindow::on_avgEn_stateChanged(int arg1)
 {
     ui->labelAveraging->setEnabled(arg1);
     ui->avgSweeps->setEnabled(arg1);
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+    gpib->send_command(17, ui->lineEdit->text());
 }
 

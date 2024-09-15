@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <prologixgpib.h>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,6 +20,8 @@ public:
 private slots:
 
     void on_avgEn_stateChanged(int arg1);
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
