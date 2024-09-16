@@ -84,6 +84,7 @@ void MainWindow::init_instrument()
 
     QObject::connect(finish, &QState::entered, this, [=]{
         qDebug() << "Init finished!";
+        ui->instrumentState->setText("Instrument initialized.");
         machine->deleteLater();
     });
 
@@ -94,7 +95,7 @@ void MainWindow::instrument_init_commands(QVector<QString> &commands)
 {
     commands.push_back("PRES;*OPC?");
     commands.push_back("POWE -20;*OPC?");
-    commands.push_back("STAR 20;*OPC?");
+    commands.push_back("STAR 10;*OPC?");
     commands.push_back("STOP 1MHZ;*OPC?");
     commands.push_back("POIN 201;*OPC?");
     commands.push_back("ATTIA20DB;*OPC?");
@@ -118,6 +119,7 @@ void MainWindow::gpib_response(QString resp)
         qDebug() << "Instrument:" << resp;
         lastCommand.clear();
         init_instrument();
+        ui->instrumentState->setText("Instrument found.");
     }
     if (resp == "1\n") {
         emit positive_response_from_instrument();
