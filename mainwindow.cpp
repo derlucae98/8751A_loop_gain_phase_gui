@@ -56,11 +56,12 @@ void MainWindow::init_instrument()
     QVector<QString> commands;
     instrument_init_commands(commands);
     send_command_list(commands);
+    lastAction = ACTION_INSTRUMENT_INIT;
 }
 
 void MainWindow::instrument_init_commands(QVector<QString> &commands)
 {
-    commands.push_back("PRES;*OPC?");
+    //commands.push_back("PRES;*OPC?");
     commands.push_back("POWE -20;*OPC?");
     commands.push_back("STAR 10;*OPC?");
     commands.push_back("STOP 1MHZ;*OPC?");
@@ -82,15 +83,16 @@ void MainWindow::instrument_init_commands(QVector<QString> &commands)
 
 void MainWindow::gpib_response(QString resp)
 {
+    qDebug() << "Response from action " << lastAction << ": " << resp;
     // Raw GPIB responses. Commands followed by the *OPC? command are handled seperately, See send_command_list_finished()
     switch (lastAction) {
     case ACTION_NO_ACTION:
         break;
     case ACTION_INSTRUMENT_REQUEST:
         if (resp.contains("8751A")) {
-            init_instrument();
             ui->instrumentState->setText("Instrument found.");
             lastAction = ACTION_NO_ACTION;
+            init_instrument();
         }
         break;
     case ACTION_INSTRUMENT_INIT:
@@ -106,13 +108,13 @@ void MainWindow::gpib_response(QString resp)
         stimulus_raw.clear();
         stimulus_raw = resp;
         lastAction = ACTION_NO_ACTION;
-        get_trace_data();
+        //get_trace_data();
         break;
     case ACTION_TRANSFER_DATA:
         trace_raw.clear();
         trace_raw = resp;
         lastAction = ACTION_NO_ACTION;
-        unpack_raw_data();
+        //unpack_raw_data();
         break;
     }
 }
@@ -143,6 +145,7 @@ void MainWindow::update_settings()
 
 void MainWindow::send_command_list(QVector<QString> &commands)
 {
+    qDebug() << "Sending command list with commands: " << commands << "for action " << lastAction;
     currentIndex = 0;
 
     QStateMachine *machine = new QStateMachine;
@@ -186,31 +189,34 @@ void MainWindow::send_command_list(QVector<QString> &commands)
 
 void MainWindow::send_command_list_finished()
 {
+    qDebug() << "Send command list finished for action:" << lastAction;
     switch (lastAction) {
     case ACTION_NO_ACTION:
         break;
     case ACTION_INSTRUMENT_REQUEST:
         break;
     case ACTION_INSTRUMENT_INIT:
-        ui->instrumentState->setText("Instrument initialized.");
         lastAction = ACTION_NO_ACTION;
+        ui->instrumentState->setText("Instrument initialized.");
         break;
     case ACTION_SETTINGS_UPDATE:
-        start_sweep();
         lastAction = ACTION_NO_ACTION;
+        start_sweep();
         break;
     case ACTION_SWEEP_STARTED:
-        pollHold->start();
         lastAction = ACTION_NO_ACTION;
+        pollHold->start();
         break;
     case ACTION_POLL_SWEEP_FINISH:
         pollHold->stop();
+        while(pollHold->isActive()); //Dirty wait for timer to finish
         lastAction = ACTION_NO_ACTION;
         fit_trace();
         break;
     case ACTION_FIT_TRACE:
         lastAction = ACTION_NO_ACTION;
         get_stimulus();
+        break;
     case ACTION_TRANSFER_STIMULUS:
     case ACTION_TRANSFER_DATA:
         break;
@@ -238,21 +244,17 @@ void MainWindow::start_sweep()
 
 void MainWindow::pollHold_timeout()
 {
-    lastAction = ACTION_POLL_SWEEP_FINISH;
     QVector<QString> commands;
     commands.push_back("HOLD?");
     send_command_list(commands);
+    lastAction = ACTION_POLL_SWEEP_FINISH;
 }
 
 void MainWindow::fit_trace()
 {
     QVector<QString> commands;
     // Auto scale both channels. Not relevant for getting the trace data but for viewing on the instrument screen
-    commands.push_back("CHAN1;*OPC?");
-    commands.push_back("AUTO;*OPC?");
-    commands.push_back("CHAN2;*OPC?");
-    commands.push_back("AUTO;*OPC?");
-    commands.push_back("CHAN1;*OPC?");
+    commands.push_back("CHAN1;AUTO;CHAN2;AUTO;CHAN1;*OPC?");
     send_command_list(commands);
     lastAction = ACTION_FIT_TRACE;
 }
