@@ -55,30 +55,37 @@ void MainWindow::init_instrument()
 {
     QVector<QString> commands;
     instrument_init_commands(commands);
-    send_command_list(commands);
+    QString cmdString;
+    cmdString.clear();
+    for (int i = 0; i < commands.length(); i++) {
+        cmdString.append(commands.at(i));
+    }
+
+    gpib->send_command(instrument_gpib_id, cmdString);
     lastAction = ACTION_INSTRUMENT_INIT;
 }
 
 void MainWindow::instrument_init_commands(QVector<QString> &commands)
 {
     //commands.push_back("PRES;*OPC?");
-    commands.push_back("POWE -20;*OPC?");
-    commands.push_back("STAR 10;*OPC?");
-    commands.push_back("STOP 1MHZ;*OPC?");
-    commands.push_back("POIN 201;*OPC?");
-    commands.push_back("ATTIA20DB;*OPC?");
-    commands.push_back("ATTIR20DB;*OPC?");
-    commands.push_back("IFBW 20;*OPC?");
-    commands.push_back("LOGFREQ;*OPC?");
-    commands.push_back("DUACON;*OPC?");
-    commands.push_back("SPLDON;*OPC?");
-    commands.push_back("HOLD;*OPC?");
-    commands.push_back("CHAN1;*OPC?");
-    commands.push_back("AR;*OPC?");
-    commands.push_back("FMT LOGM;*OPC?");
-    commands.push_back("CHAN2;*OPC?");
-    commands.push_back("AR;*OPC?");
-    commands.push_back("FMT EXPP;*OPC?");
+    commands.push_back("POWE -20;");
+    commands.push_back("STAR 10;");
+    commands.push_back("STOP 1MHZ;");
+    commands.push_back("POIN 201;");
+    commands.push_back("ATTIA20DB;");
+    commands.push_back("ATTIR20DB;");
+    commands.push_back("IFBW 20;");
+    commands.push_back("LOGFREQ;");
+    commands.push_back("DUACON;");
+    commands.push_back("SPLDON;");
+    commands.push_back("HOLD;");
+    commands.push_back("CHAN1;");
+    commands.push_back("AR;");
+    commands.push_back("FMT LOGM;");
+    commands.push_back("CHAN2;");
+    commands.push_back("AR;");
+    commands.push_back("FMT EXPP;");
+    commands.push_back("*OPC?");
 }
 
 void MainWindow::gpib_response(QString resp)
@@ -96,185 +103,148 @@ void MainWindow::gpib_response(QString resp)
         }
         break;
     case ACTION_INSTRUMENT_INIT:
+        if (resp == "1\n") {
+            lastAction = ACTION_NO_ACTION;
+            ui->instrumentState->setText("Instrument initialized.");
+        }
+        break;
     case ACTION_SETTINGS_UPDATE:
+        if (resp == "1\n") {
+            lastAction = ACTION_NO_ACTION;
+            start_sweep();
+        }
+        break;
     case ACTION_SWEEP_STARTED:
+        if (resp == "1\n") {
+            lastAction = ACTION_NO_ACTION;
+            pollHold->start();
+        }
+        break;
     case ACTION_POLL_SWEEP_FINISH:
+        if (resp == "1\n") {
+            pollHold->stop();
+            while(pollHold->isActive()); //Dirty wait for timer to finish
+            lastAction = ACTION_NO_ACTION;
+            fit_trace();
+        }
+        break;
     case ACTION_FIT_TRACE:
         if (resp == "1\n") {
-            emit positive_response_from_instrument();
+            lastAction = ACTION_NO_ACTION;
+            get_stimulus();
         }
         break;
     case ACTION_TRANSFER_STIMULUS:
-        stimulus_raw.clear();
-        stimulus_raw = resp;
-        lastAction = ACTION_NO_ACTION;
-        //get_trace_data();
+        if (not resp.contains("\n")) {
+            stimulus_raw.append(resp);
+        } else {
+            lastAction = ACTION_NO_ACTION;
+            get_trace_data();
+        }
         break;
     case ACTION_TRANSFER_DATA:
-        trace_raw.clear();
-        trace_raw = resp;
-        lastAction = ACTION_NO_ACTION;
-        //unpack_raw_data();
+        if (not resp.contains("\n")) {
+            trace_raw.append(resp);
+        } else {
+            lastAction = ACTION_NO_ACTION;
+            unpack_raw_data();
+        }
         break;
     }
 }
 
 void MainWindow::update_settings()
 {
+    QString instrumentSettings;
     instrumentSettings.clear();
-    instrumentSettings.push_back(QString("STAR %1;*OPC?").arg(ui->startFreq->text()));
-    instrumentSettings.push_back(QString("STOP %1;*OPC?").arg(ui->stopFreq->text()));
-    instrumentSettings.push_back(QString("POIN %1;*OPC?").arg(ui->numberOfPoints->currentText()));
-    instrumentSettings.push_back(QString("POWE %1;*OPC?").arg(ui->outputPower->value()));
+    instrumentSettings.append(QString("STAR %1;").arg(ui->startFreq->text()));
+    instrumentSettings.append(QString("STOP %1;").arg(ui->stopFreq->text()));
+    instrumentSettings.append(QString("POIN %1;").arg(ui->numberOfPoints->currentText()));
+    instrumentSettings.append(QString("POWE %1;").arg(ui->outputPower->value()));
     if (ui->attenA->currentIndex() == 0) {
-        instrumentSettings.push_back("ATTIA0DB;*OPC?");
+        instrumentSettings.append("ATTIA0DB;");
     } else {
-        instrumentSettings.push_back("ATTIA20DB;*OPC?");
+        instrumentSettings.append("ATTIA20DB;");
     }
     if (ui->attenR->currentIndex() == 0) {
-        instrumentSettings.push_back("ATTIR0DB;*OPC?");
+        instrumentSettings.append("ATTIR0DB;");
     } else {
-        instrumentSettings.push_back("ATTIR20DB;*OPC?");
+        instrumentSettings.append("ATTIR20DB;");
     }
     QString ifbw = ui->ifBw->currentText();
     ifbw.chop(3); //Remove " Hz" unit
-    instrumentSettings.push_back(QString("IFBW %1;*OPC?").arg(ifbw));
+    instrumentSettings.append(QString("IFBW %1;").arg(ifbw));
+    instrumentSettings.append("*OPC?");
 
-    send_command_list(instrumentSettings);
-}
-
-void MainWindow::send_command_list(QVector<QString> &commands)
-{
-    qDebug() << "Sending command list with commands: " << commands << "for action " << lastAction;
-    currentIndex = 0;
-
-    QStateMachine *machine = new QStateMachine;
-    QState *s_sendCommand = new QState();
-    QState *s_response = new QState();
-    QFinalState *finish = new QFinalState();
-
-
-    s_response->addTransition(this, &MainWindow::positive_response_from_instrument, s_sendCommand);
-    s_sendCommand->addTransition(this, &MainWindow::command_sent, s_response);
-    s_sendCommand->addTransition(this, &MainWindow::instrument_init_finished, finish);
-
-    machine->addState(s_sendCommand);
-    machine->addState(s_response);
-    machine->addState(finish);
-    machine->setInitialState(s_sendCommand);
-
-    QObject::connect(s_sendCommand, &QState::entered, this, [=]{
-        if (currentIndex < commands.size()) {
-            gpib->send_command(instrument_gpib_id, commands.at(currentIndex));
-            emit command_sent();
-        } else {
-            emit instrument_init_finished();
-        }
-    });
-
-    QObject::connect(s_response, &QState::entered, this, [&]{
-        currentIndex++;
-    });
-
-    QObject::connect(finish, &QState::entered, this, [=]{
-        send_command_list_finished();
-        machine->deleteLater();
-        s_sendCommand->deleteLater();
-        s_response->deleteLater();
-        finish->deleteLater();
-    });
-
-    machine->start();
-}
-
-void MainWindow::send_command_list_finished()
-{
-    qDebug() << "Send command list finished for action:" << lastAction;
-    switch (lastAction) {
-    case ACTION_NO_ACTION:
-        break;
-    case ACTION_INSTRUMENT_REQUEST:
-        break;
-    case ACTION_INSTRUMENT_INIT:
-        lastAction = ACTION_NO_ACTION;
-        ui->instrumentState->setText("Instrument initialized.");
-        break;
-    case ACTION_SETTINGS_UPDATE:
-        lastAction = ACTION_NO_ACTION;
-        start_sweep();
-        break;
-    case ACTION_SWEEP_STARTED:
-        lastAction = ACTION_NO_ACTION;
-        pollHold->start();
-        break;
-    case ACTION_POLL_SWEEP_FINISH:
-        pollHold->stop();
-        while(pollHold->isActive()); //Dirty wait for timer to finish
-        lastAction = ACTION_NO_ACTION;
-        fit_trace();
-        break;
-    case ACTION_FIT_TRACE:
-        lastAction = ACTION_NO_ACTION;
-        get_stimulus();
-        break;
-    case ACTION_TRANSFER_STIMULUS:
-    case ACTION_TRANSFER_DATA:
-        break;
-    }
+    gpib->send_command(instrument_gpib_id, instrumentSettings);
 }
 
 void MainWindow::start_sweep()
 {
-    QVector<QString> commands;
+    QString commands;
+    commands.clear();
 
     if (not ui->avgEn->isChecked()) {
         // Single sweep when averaging is off
-        commands.push_back("AVEROFF;*OPC?");
-        commands.push_back("SING;*OPC?");
-        send_command_list(commands);
+        commands.append("AVEROFF;");
+        commands.append("SING;");
+        commands.append("*OPC?");
+        gpib->send_command(instrument_gpib_id, commands);
     } else {
         // n number of sweeps for averaging factor of n
-        commands.push_back("AVERON;*OPC?");
-        commands.push_back(QString("AVERFACT %1;*OPC?").arg(ui->avgSweeps->currentText()));
-        commands.push_back(QString("NUMG %1;*OPC?").arg(ui->avgSweeps->currentText()));
-        send_command_list(commands);
+        commands.append("AVERON;");
+        commands.append(QString("AVERFACT %1;").arg(ui->avgSweeps->currentText()));
+        commands.append(QString("NUMG %1;").arg(ui->avgSweeps->currentText()));
+        commands.append("*OPC?");
+        gpib->send_command(instrument_gpib_id, commands);
     }
     lastAction = ACTION_SWEEP_STARTED;
 }
 
 void MainWindow::pollHold_timeout()
 {
-    QVector<QString> commands;
-    commands.push_back("HOLD?");
-    send_command_list(commands);
+    QString commands;
+    commands.clear();
+    commands.append("HOLD?");
+    gpib->send_command(instrument_gpib_id, commands);
     lastAction = ACTION_POLL_SWEEP_FINISH;
 }
 
 void MainWindow::fit_trace()
 {
-    QVector<QString> commands;
+    QString commands;
+    commands.clear();
     // Auto scale both channels. Not relevant for getting the trace data but for viewing on the instrument screen
-    commands.push_back("CHAN1;AUTO;CHAN2;AUTO;CHAN1;*OPC?");
-    send_command_list(commands);
+    commands.append("CHAN1;");
+    commands.append("AUTO;");
+    commands.append("CHAN2");
+    commands.append("AUTO;");
+    commands.append("CHAN1;");
+    commands.append("*OPC?");
+    gpib->send_command(instrument_gpib_id, commands);
     lastAction = ACTION_FIT_TRACE;
 }
 
 void MainWindow::get_stimulus()
 {
     // Get stimulus frequencies
-    QVector<QString> commands;
-    commands.push_back("OUTPSTIM?");
-    send_command_list(commands);
+    QString commands;
+    commands.clear();
+    commands.append("OUTPSTIM?");
+    gpib->send_command(instrument_gpib_id, commands);
     lastAction = ACTION_TRANSFER_STIMULUS;
+    stimulus_raw.clear();
 }
 
 void MainWindow::get_trace_data()
 {
     // Get trace data of Channel 1 in Format Real+jImag
-    QVector<QString> commands;
-    commands.push_back("OUTPFORM?");
-    send_command_list(commands);
+    QString commands;
+    commands.clear();
+    commands.append("OUTPFORM?");
+    gpib->send_command(instrument_gpib_id, commands);
     lastAction = ACTION_TRANSFER_DATA;
+    trace_raw.clear();
 }
 
 void MainWindow::unpack_raw_data()

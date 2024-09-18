@@ -58,12 +58,9 @@ private:
     void instrument_init_commands(QVector<QString> &commands);
     quint8 instrument_gpib_id;
     void gpib_response(QString resp);
-    quint16 currentIndex;
     void update_settings();
-    void send_command_list(QVector<QString> &commands);
-    void send_command_list_finished();
     void start_sweep();
-    QVector<QString> instrumentSettings;
+
     QTimer *pollHold = nullptr; //When sweeping, poll instrument to check if sweep has finished
     void pollHold_timeout();
     void fit_trace();
@@ -75,8 +72,6 @@ private:
     QVector<trace_data_t> trace_data;
 
 signals:
-    void positive_response_from_instrument(); // Instrument responds with "1" when queried a *OPC? command
-    void instrument_init_finished();
-    void command_sent();
+
 };
 #endif // MAINWINDOW_H
