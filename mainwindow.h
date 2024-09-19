@@ -8,6 +8,8 @@
 #include <QState>
 #include <QFinalState>
 #include <QTimer>
+#include <QtCharts>
+#include <math.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,6 +27,8 @@ private slots:
     void on_btnStart_clicked();
 
 
+    void on_btnSave_clicked();
+
 private:
 
     enum last_action_t{
@@ -36,14 +40,15 @@ private:
         ACTION_POLL_SWEEP_FINISH,
         ACTION_FIT_TRACE,
         ACTION_TRANSFER_STIMULUS,
-        ACTION_TRANSFER_DATA,
+        ACTION_TRANSFER_MAGNITUDE,
+        ACTION_TRANSFER_PHASE,
         ACTION_CANCEL_SWEEP
     }; //Keep track of the last GPIB action since it is asynchronous
 
     struct trace_data_t {
         double frequency;
-        double real;
-        double imaginary;
+        double magnitude;
+        double phase;
     };
 
     last_action_t lastAction;
@@ -63,13 +68,24 @@ private:
     void pollHold_timeout();
     void fit_trace();
     void get_stimulus();
-    void get_trace_data();
+    void get_magnitude_data();
+    void get_phase_data();
     void unpack_raw_data();
     void disable_ui();
     void enable_ui();
     QString stimulus_raw;
-    QString trace_raw;
+    QString magnitude_raw;
+    QString phase_raw;
     QVector<trace_data_t> trace_data;
+
+    QLineSeries *magnitude = nullptr;
+    QLineSeries *phase = nullptr;
+    QLogValueAxis *axisX = nullptr;
+    QValueAxis *axisY = nullptr;
+    QValueAxis *axisYPhase = nullptr;
+
+    void plot_data();
+
 
 signals:
 

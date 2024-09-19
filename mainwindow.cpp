@@ -6,11 +6,13 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setFixedSize(this->size());
 
     ui->labelAveraging->setEnabled(false);
     ui->avgSweeps->setEnabled(false);
     disable_ui();
     ui->btnStart->setEnabled(false);
+    ui->btnSave->setEnabled(false);
 
     gpib = new PrologixGPIB(this);
     QHostAddress addr = QHostAddress("192.168.178.153");
@@ -122,10 +124,6 @@ void MainWindow::gpib_response(QString resp)
     case ACTION_SWEEP_STARTED:
         if (resp == "1\n") {
             lastAction = ACTION_NO_ACTION;
-            pollHold->start();
-            disable_ui();
-            ui->btnStart->setText("Stop");
-            ui->statusbar->showMessage("Sweeping... Waiting for instrument.");
         }
         break;
     case ACTION_POLL_SWEEP_FINISH:
@@ -147,12 +145,19 @@ void MainWindow::gpib_response(QString resp)
         stimulus_raw.append(resp);
         if (stimulus_raw.contains("\n")) {
             lastAction = ACTION_NO_ACTION;
-            get_trace_data();
+            get_magnitude_data();
         }
         break;
-    case ACTION_TRANSFER_DATA:
-        trace_raw.append(resp);
-        if (trace_raw.contains("\n")) {
+    case ACTION_TRANSFER_MAGNITUDE:
+        magnitude_raw.append(resp);
+        if (magnitude_raw.contains("\n")) {
+            lastAction = ACTION_NO_ACTION;
+            get_phase_data();
+        }
+        break;
+    case ACTION_TRANSFER_PHASE:
+        phase_raw.append(resp);
+        if (phase_raw.contains("\n")) {
             lastAction = ACTION_NO_ACTION;
             unpack_raw_data();
         }
@@ -214,6 +219,11 @@ void MainWindow::start_sweep()
         gpib->send_command(instrument_gpib_id, commands);
     }
     lastAction = ACTION_SWEEP_STARTED;
+    ui->btnSave->setEnabled(false);
+    pollHold->start();
+    disable_ui();
+    ui->btnStart->setText("Stop");
+    ui->statusbar->showMessage("Sweeping... Waiting for instrument.");
 }
 
 void MainWindow::pollHold_timeout()
@@ -251,28 +261,46 @@ void MainWindow::get_stimulus()
     stimulus_raw.clear();
 }
 
-void MainWindow::get_trace_data()
+void MainWindow::get_magnitude_data()
 {
-    // Get trace data of Channel 1 in Format Real+jImag
+    // Get trace data of Channel 1 in dB
+    QString commands;
+    commands.clear();
+    commands.append("OUTPFORM?;CHAN2;*OPC?");
+    gpib->send_command(instrument_gpib_id, commands);
+    lastAction = ACTION_TRANSFER_MAGNITUDE;
+    magnitude_raw.clear();
+}
+
+void MainWindow::get_phase_data()
+{
+    // Get trace data of Channel 2 in Format degree
     QString commands;
     commands.clear();
     commands.append("OUTPFORM?");
     gpib->send_command(instrument_gpib_id, commands);
-    lastAction = ACTION_TRANSFER_DATA;
-    trace_raw.clear();
+    lastAction = ACTION_TRANSFER_PHASE;
+    phase_raw.clear();
 }
 
 void MainWindow::unpack_raw_data()
 {
     stimulus_raw.chop(1); //Remove \n
-    trace_raw.chop(1); //Remove \n
+    magnitude_raw.chop(3); //Remove ;1\n
+    phase_raw.chop(1);
 
     QStringList stimulus;
     stimulus = stimulus_raw.split(',');
 
     trace_data.resize(stimulus.size());
-    QStringList trace;
-    trace = trace_raw.split(',');
+
+    QStringList magnitude;
+    magnitude = magnitude_raw.split(',');
+
+    QStringList phase;
+    phase = phase_raw.split(',');
+
+    //qDebug() << "Stimulus size: " << stimulus.size() << ", Trace size: " << trace.size();
 
     bool ok;
     for (int i = 0; i < stimulus.size(); i++) {
@@ -280,19 +308,21 @@ void MainWindow::unpack_raw_data()
         if (!ok) {
             qDebug() << "err parsing string for frequency at point " << i;
         }
-        trace_data[i].real = trace.at(i).toDouble(&ok);
+        trace_data[i].magnitude = magnitude.at(2 * i).toDouble(&ok);
         if (!ok) {
-            qDebug() << "err parsing string for real at point " << i;
+            qDebug() << "err parsing string for magnitude at point " << i;
         }
-        trace_data[i].imaginary = trace.at(i + 1).toDouble(&ok);
+        trace_data[i].phase = phase.at(2 * i).toDouble(&ok);
         if (!ok) {
-            qDebug() << "err parsing string for imag at point " << i;
+            qDebug() << "err parsing string for phase at point " << i;
         }
-        qDebug() << "f: " << trace_data.at(i).frequency << ", Real: " << trace_data.at(i).real << ", Imag: " << trace_data.at(i).imaginary;
+        qDebug() << "f: " << trace_data.at(i).frequency << ", Magnitude: " << trace_data.at(i).magnitude << ", Phase: " << trace_data.at(i).phase;
     }
 
     enable_ui();
+    plot_data();
     ui->statusbar->showMessage("Ready.");
+    ui->btnSave->setEnabled(true);
 }
 
 void MainWindow::disable_ui()
@@ -322,6 +352,105 @@ void MainWindow::enable_ui()
     ui->btnStart->setText("Start");
 }
 
+void MainWindow::plot_data()
+{
+    // Prepare data for plot
+
+    QList<QPointF> magnitudePoints;
+    QList<QPointF> phasePoints;
+
+    for (int i = 0; i < trace_data.length(); i++) {
+        magnitudePoints.push_back({trace_data.at(i).frequency, trace_data.at(i).magnitude});
+        phasePoints.push_back({trace_data.at(i).frequency, trace_data.at(i).phase});
+    }
+
+    magnitude = new QLineSeries();
+    magnitude->append(magnitudePoints);
+    magnitude->setPointLabelsVisible(false);
+    magnitude->setPointLabelsFormat("(@xPoint, @yPoint)");
+    magnitude->setName("Magnitude");
+
+    phase = new QLineSeries();
+    phase->append(phasePoints);
+    phase->setPointLabelsVisible(false);
+    phase->setPointLabelsFormat("(@xPoint, @yPoint)");
+    phase->setName("Phase");
+
+    QChart *chart = new QChart();
+    chart->addSeries(magnitude);
+    chart->addSeries(phase);
+
+    axisX = new QLogValueAxis();
+    axisX->setTitleText("Frequency / Hz");
+    axisX->setLabelFormat("%g");
+    axisX->setBase(10.0);
+    axisX->setMinorTickCount(8);
+    axisX->setMin(ui->startFreq->text().toDouble());
+    axisX->setMax(ui->stopFreq->text().toDouble());
+    chart->addAxis(axisX, Qt::AlignBottom);
+    magnitude->attachAxis(axisX);
+    phase->attachAxis(axisX);
+
+    double min = trace_data.at(0).magnitude;
+    double max = trace_data.at(0).magnitude;
+    //Get min and max value of the magnitude
+    for (int i = 1; i < trace_data.size(); i++) {
+        if (trace_data.at(i).magnitude < min) {
+            min = trace_data.at(i).magnitude;
+        }
+        if (trace_data.at(i).magnitude > max) {
+            max = trace_data.at(i).magnitude;
+        }
+    }
+
+    qDebug() << "Magnitude min: " << min;
+    qDebug() << "Magnitude max: " << max;
+
+    axisY = new QValueAxis();
+    axisY->setTitleText("Magnitude / dB");
+    axisY->setLabelFormat("%i");
+    axisY->setMin(std::floor(min - 2.5));
+    axisY->setMax(std::ceil(max + 2.5));
+    axisY->setTickType(QValueAxis::TicksDynamic);
+    axisY->setTickAnchor(max);
+    axisY->setTickInterval((max - min) / 5);
+    axisY->setMinorTickCount(5);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    magnitude->attachAxis(axisY);
+
+    min = trace_data.at(0).phase;
+    max = trace_data.at(0).phase;
+    //Get min and max value of the phase
+    for (int i = 1; i < trace_data.size(); i++) {
+        if (trace_data.at(i).phase < min) {
+            min = trace_data.at(i).phase;
+        }
+        if (trace_data.at(i).phase > max) {
+            max = trace_data.at(i).phase;
+        }
+    }
+
+    qDebug() << "phase min: " << min;
+    qDebug() << "phase max: " << max;
+
+    axisYPhase = new QValueAxis();
+    axisYPhase->setTitleText("Phase / °");
+    axisYPhase->setLabelFormat("%i");
+    axisYPhase->setMin(std::floor(min - 2.5)); //Round to nearest 5 °
+    axisYPhase->setMax(std::ceil(max + 2.5)); //Round to nearest 5 °
+    axisYPhase->setTickType(QValueAxis::TicksDynamic);
+    axisYPhase->setTickAnchor(max);
+    axisYPhase->setTickInterval((max - min) / 5);
+    axisYPhase->setMinorTickCount(5);
+    chart->addAxis(axisYPhase, Qt::AlignRight);
+    phase->attachAxis(axisYPhase);
+
+    QChartView *chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    QVBoxLayout *layout = new QVBoxLayout(ui->chart);
+    layout->addWidget(chartView);
+}
+
 
 void MainWindow::on_btnStart_clicked()
 {
@@ -335,5 +464,11 @@ void MainWindow::on_btnStart_clicked()
         gpib->send_command(instrument_gpib_id, "HOLD;*OPC?");
         lastAction = ACTION_CANCEL_SWEEP;
     }
+}
+
+
+void MainWindow::on_btnSave_clicked()
+{
+
 }
 
