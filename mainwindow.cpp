@@ -9,16 +9,33 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->labelAveraging->setEnabled(false);
     ui->avgSweeps->setEnabled(false);
+    disable_ui();
+    ui->btnStart->setEnabled(false);
 
     gpib = new PrologixGPIB(this);
     QHostAddress addr = QHostAddress("192.168.178.153");
     QObject::connect(gpib, &PrologixGPIB::response, this, &MainWindow::gpib_response);
-    gpib->init(addr);
+    QObject::connect(gpib, &PrologixGPIB::stateChanged, this, [=](QAbstractSocket::SocketState state) {
+        qDebug() << state;
+        switch (state) {
+        case QAbstractSocket::ConnectingState:
+            ui->statusbar->showMessage("Connecting to instrument...");
+            break;
+        case QAbstractSocket::UnconnectedState:
+            ui->statusbar->showMessage("Could not connect to instrument!");
+            break;
+        case QAbstractSocket::ConnectedState:
+            lastAction = ACTION_NO_ACTION;
+            request_instrument();
+            break;
+        default:
+            break;
+        }
+    });
 
     instrument_gpib_id = 17;
+    gpib->init(addr);
 
-    lastAction = ACTION_NO_ACTION;
-    request_instrument();
 
     pollHold = new QTimer(this);
     pollHold->setInterval(500);
@@ -29,19 +46,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-
-void MainWindow::on_avgEn_stateChanged(int arg1)
-{
-    ui->labelAveraging->setEnabled(arg1);
-    ui->avgSweeps->setEnabled(arg1);
-}
-
-
-void MainWindow::on_pushButton_clicked()
-{
-    gpib->send_command(17, ui->lineEdit->text());
 }
 
 void MainWindow::request_instrument()
@@ -90,14 +94,13 @@ void MainWindow::instrument_init_commands(QVector<QString> &commands)
 
 void MainWindow::gpib_response(QString resp)
 {
-    qDebug() << "Response from action " << lastAction << ": " << resp;
-    // Raw GPIB responses. Commands followed by the *OPC? command are handled seperately, See send_command_list_finished()
+    qDebug() << "Response for action " << lastAction << ": " << resp;
     switch (lastAction) {
     case ACTION_NO_ACTION:
         break;
     case ACTION_INSTRUMENT_REQUEST:
         if (resp.contains("8751A")) {
-            ui->instrumentState->setText("Instrument found.");
+            ui->statusbar->showMessage("Instrument found. Initializing...");
             lastAction = ACTION_NO_ACTION;
             init_instrument();
         }
@@ -105,7 +108,9 @@ void MainWindow::gpib_response(QString resp)
     case ACTION_INSTRUMENT_INIT:
         if (resp == "1\n") {
             lastAction = ACTION_NO_ACTION;
-            ui->instrumentState->setText("Instrument initialized.");
+            ui->statusbar->showMessage("Instrument ready.");
+            enable_ui();
+            ui->btnStart->setEnabled(true);
         }
         break;
     case ACTION_SETTINGS_UPDATE:
@@ -118,6 +123,9 @@ void MainWindow::gpib_response(QString resp)
         if (resp == "1\n") {
             lastAction = ACTION_NO_ACTION;
             pollHold->start();
+            disable_ui();
+            ui->btnStart->setText("Stop");
+            ui->statusbar->showMessage("Sweeping... Waiting for instrument.");
         }
         break;
     case ACTION_POLL_SWEEP_FINISH:
@@ -132,22 +140,27 @@ void MainWindow::gpib_response(QString resp)
         if (resp == "1\n") {
             lastAction = ACTION_NO_ACTION;
             get_stimulus();
+            ui->statusbar->showMessage("Retrieving data...");
         }
         break;
     case ACTION_TRANSFER_STIMULUS:
-        if (not resp.contains("\n")) {
-            stimulus_raw.append(resp);
-        } else {
+        stimulus_raw.append(resp);
+        if (stimulus_raw.contains("\n")) {
             lastAction = ACTION_NO_ACTION;
             get_trace_data();
         }
         break;
     case ACTION_TRANSFER_DATA:
-        if (not resp.contains("\n")) {
-            trace_raw.append(resp);
-        } else {
+        trace_raw.append(resp);
+        if (trace_raw.contains("\n")) {
             lastAction = ACTION_NO_ACTION;
             unpack_raw_data();
+        }
+        break;
+    case ACTION_CANCEL_SWEEP:
+        if (resp == "1\n") {
+            enable_ui();
+            ui->statusbar->showMessage("Sweep cancelled. Ready.");
         }
         break;
     }
@@ -186,13 +199,15 @@ void MainWindow::start_sweep()
 
     if (not ui->avgEn->isChecked()) {
         // Single sweep when averaging is off
-        commands.append("AVEROFF;");
+        commands.append("CHAN1;AVEROFF;CHAN2;AVEROFF;");
         commands.append("SING;");
         commands.append("*OPC?");
         gpib->send_command(instrument_gpib_id, commands);
     } else {
         // n number of sweeps for averaging factor of n
-        commands.append("AVERON;");
+        commands.append("CHAN1;AVERON;");
+        commands.append(QString("AVERFACT %1;").arg(ui->avgSweeps->currentText()));
+        commands.append("CHAN2;AVERON;");
         commands.append(QString("AVERFACT %1;").arg(ui->avgSweeps->currentText()));
         commands.append(QString("NUMG %1;").arg(ui->avgSweeps->currentText()));
         commands.append("*OPC?");
@@ -217,7 +232,7 @@ void MainWindow::fit_trace()
     // Auto scale both channels. Not relevant for getting the trace data but for viewing on the instrument screen
     commands.append("CHAN1;");
     commands.append("AUTO;");
-    commands.append("CHAN2");
+    commands.append("CHAN2;");
     commands.append("AUTO;");
     commands.append("CHAN1;");
     commands.append("*OPC?");
@@ -249,15 +264,76 @@ void MainWindow::get_trace_data()
 
 void MainWindow::unpack_raw_data()
 {
-    trace_data.clear();
+    stimulus_raw.chop(1); //Remove \n
+    trace_raw.chop(1); //Remove \n
 
+    QStringList stimulus;
+    stimulus = stimulus_raw.split(',');
+
+    trace_data.resize(stimulus.size());
+    QStringList trace;
+    trace = trace_raw.split(',');
+
+    bool ok;
+    for (int i = 0; i < stimulus.size(); i++) {
+        trace_data[i].frequency = stimulus.at(i).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "err parsing string for frequency at point " << i;
+        }
+        trace_data[i].real = trace.at(i).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "err parsing string for real at point " << i;
+        }
+        trace_data[i].imaginary = trace.at(i + 1).toDouble(&ok);
+        if (!ok) {
+            qDebug() << "err parsing string for imag at point " << i;
+        }
+        qDebug() << "f: " << trace_data.at(i).frequency << ", Real: " << trace_data.at(i).real << ", Imag: " << trace_data.at(i).imaginary;
+    }
+
+    enable_ui();
+    ui->statusbar->showMessage("Ready.");
+}
+
+void MainWindow::disable_ui()
+{
+    QList<QWidget*> grpSource = ui->grpSource->findChildren<QWidget*>();
+    foreach (QWidget* w, grpSource) {
+        w->setEnabled(false);
+    }
+
+    QList<QWidget*> grpReceive = ui->grpReceive->findChildren<QWidget*>();
+    foreach (QWidget* w, grpReceive) {
+        w->setEnabled(false);
+    }
+}
+
+void MainWindow::enable_ui()
+{
+    QList<QWidget*> grpSource = ui->grpSource->findChildren<QWidget*>();
+    foreach (QWidget* w, grpSource) {
+        w->setEnabled(true);
+    }
+
+    QList<QWidget*> grpReceive = ui->grpReceive->findChildren<QWidget*>();
+    foreach (QWidget* w, grpReceive) {
+        w->setEnabled(true);
+    }
+    ui->btnStart->setText("Start");
 }
 
 
 void MainWindow::on_btnStart_clicked()
 {
-    update_settings();
-    lastAction = ACTION_SETTINGS_UPDATE;
-    // Sweep will be started asynchronous after settings update was successful
+    if (ui->btnStart->text() == "Start") {
+        update_settings();
+        lastAction = ACTION_SETTINGS_UPDATE;
+        // Sweep will be started asynchronous after settings update was successful
+    } else {
+        pollHold->stop();
+        while (pollHold->isActive());
+        gpib->send_command(instrument_gpib_id, "HOLD;*OPC?");
+        lastAction = ACTION_CANCEL_SWEEP;
+    }
 }
 

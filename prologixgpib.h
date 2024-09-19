@@ -23,7 +23,7 @@ private:
 signals:
     void connected();
     void disconnected();
-    void stateChanged();
+    void stateChanged(QAbstractSocket::SocketState);
     void response(QString);
 
 };

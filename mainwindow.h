@@ -22,9 +22,6 @@ public:
     ~MainWindow();
 
 private slots:
-
-    void on_avgEn_stateChanged(int arg1);
-    void on_pushButton_clicked();
     void on_btnStart_clicked();
 
 
@@ -39,13 +36,14 @@ private:
         ACTION_POLL_SWEEP_FINISH,
         ACTION_FIT_TRACE,
         ACTION_TRANSFER_STIMULUS,
-        ACTION_TRANSFER_DATA
+        ACTION_TRANSFER_DATA,
+        ACTION_CANCEL_SWEEP
     }; //Keep track of the last GPIB action since it is asynchronous
 
     struct trace_data_t {
-        float frequency;
-        float real;
-        float imaginary;
+        double frequency;
+        double real;
+        double imaginary;
     };
 
     last_action_t lastAction;
@@ -67,6 +65,8 @@ private:
     void get_stimulus();
     void get_trace_data();
     void unpack_raw_data();
+    void disable_ui();
+    void enable_ui();
     QString stimulus_raw;
     QString trace_raw;
     QVector<trace_data_t> trace_data;
