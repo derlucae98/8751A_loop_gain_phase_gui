@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     disable_ui();
     ui->btnStart->setEnabled(false);
     ui->btnSave->setEnabled(false);
+    init_plot();
 
     gpib = new PrologixGPIB(this);
     QHostAddress addr = QHostAddress("192.168.178.153");
@@ -123,6 +124,7 @@ void MainWindow::gpib_response(QString resp)
         break;
     case ACTION_SWEEP_STARTED:
         if (resp == "1\n") {
+            pollHold->start();
             lastAction = ACTION_NO_ACTION;
         }
         break;
@@ -192,6 +194,7 @@ void MainWindow::update_settings()
     QString ifbw = ui->ifBw->currentText();
     ifbw.chop(3); //Remove " Hz" unit
     instrumentSettings.append(QString("IFBW %1;").arg(ifbw));
+    instrumentSettings.append("CLEPTRIP;");
     instrumentSettings.append("*OPC?");
 
     gpib->send_command(instrument_gpib_id, instrumentSettings);
@@ -220,7 +223,6 @@ void MainWindow::start_sweep()
     }
     lastAction = ACTION_SWEEP_STARTED;
     ui->btnSave->setEnabled(false);
-    pollHold->start();
     disable_ui();
     ui->btnStart->setText("Stop");
     ui->statusbar->showMessage("Sweeping... Waiting for instrument.");
@@ -352,6 +354,45 @@ void MainWindow::enable_ui()
     ui->btnStart->setText("Start");
 }
 
+void MainWindow::init_plot()
+{
+    magnitude = new QLineSeries();
+    magnitude->setName("Magnitude");
+
+    phase = new QLineSeries();
+    phase->setName("Phase");
+
+    chart = new QChart();
+    chart->addSeries(magnitude);
+    chart->addSeries(phase);
+
+    axisX = new QLogValueAxis();
+    axisX->setTitleText("Frequency / Hz");
+    axisX->setLabelFormat("%g");
+    axisX->setBase(10.0);
+    axisX->setMinorTickCount(8);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    magnitude->attachAxis(axisX);
+    phase->attachAxis(axisX);
+
+    axisY = new QValueAxis();
+    axisY->setTitleText("Magnitude / dB");
+    axisY->setLabelFormat("%i");
+    chart->addAxis(axisY, Qt::AlignLeft);
+    magnitude->attachAxis(axisY);
+
+    axisYPhase = new QValueAxis();
+    axisYPhase->setTitleText("Phase / °");
+    axisYPhase->setLabelFormat("%i");
+    chart->addAxis(axisYPhase, Qt::AlignRight);
+    phase->attachAxis(axisYPhase);
+
+    chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    layout = new QVBoxLayout(ui->chart);
+    layout->addWidget(chartView);
+}
+
 void MainWindow::plot_data()
 {
     // Prepare data for plot
@@ -364,32 +405,16 @@ void MainWindow::plot_data()
         phasePoints.push_back({trace_data.at(i).frequency, trace_data.at(i).phase});
     }
 
-    magnitude = new QLineSeries();
+    magnitude->clear();
     magnitude->append(magnitudePoints);
-    magnitude->setPointLabelsVisible(false);
-    magnitude->setPointLabelsFormat("(@xPoint, @yPoint)");
     magnitude->setName("Magnitude");
 
-    phase = new QLineSeries();
+    phase->clear();
     phase->append(phasePoints);
-    phase->setPointLabelsVisible(false);
-    phase->setPointLabelsFormat("(@xPoint, @yPoint)");
     phase->setName("Phase");
 
-    QChart *chart = new QChart();
-    chart->addSeries(magnitude);
-    chart->addSeries(phase);
-
-    axisX = new QLogValueAxis();
-    axisX->setTitleText("Frequency / Hz");
-    axisX->setLabelFormat("%g");
-    axisX->setBase(10.0);
-    axisX->setMinorTickCount(8);
     axisX->setMin(ui->startFreq->text().toDouble());
     axisX->setMax(ui->stopFreq->text().toDouble());
-    chart->addAxis(axisX, Qt::AlignBottom);
-    magnitude->attachAxis(axisX);
-    phase->attachAxis(axisX);
 
     double min = trace_data.at(0).magnitude;
     double max = trace_data.at(0).magnitude;
@@ -406,7 +431,6 @@ void MainWindow::plot_data()
     qDebug() << "Magnitude min: " << min;
     qDebug() << "Magnitude max: " << max;
 
-    axisY = new QValueAxis();
     axisY->setTitleText("Magnitude / dB");
     axisY->setLabelFormat("%i");
     axisY->setMin(std::floor(min - 2.5));
@@ -415,8 +439,6 @@ void MainWindow::plot_data()
     axisY->setTickAnchor(max);
     axisY->setTickInterval((max - min) / 5);
     axisY->setMinorTickCount(5);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    magnitude->attachAxis(axisY);
 
     min = trace_data.at(0).phase;
     max = trace_data.at(0).phase;
@@ -433,7 +455,6 @@ void MainWindow::plot_data()
     qDebug() << "phase min: " << min;
     qDebug() << "phase max: " << max;
 
-    axisYPhase = new QValueAxis();
     axisYPhase->setTitleText("Phase / °");
     axisYPhase->setLabelFormat("%i");
     axisYPhase->setMin(std::floor(min - 2.5)); //Round to nearest 5 °
@@ -442,13 +463,6 @@ void MainWindow::plot_data()
     axisYPhase->setTickAnchor(max);
     axisYPhase->setTickInterval((max - min) / 5);
     axisYPhase->setMinorTickCount(5);
-    chart->addAxis(axisYPhase, Qt::AlignRight);
-    phase->attachAxis(axisYPhase);
-
-    QChartView *chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-    QVBoxLayout *layout = new QVBoxLayout(ui->chart);
-    layout->addWidget(chartView);
 }
 
 
@@ -457,7 +471,7 @@ void MainWindow::on_btnStart_clicked()
     if (ui->btnStart->text() == "Start") {
         update_settings();
         lastAction = ACTION_SETTINGS_UPDATE;
-        // Sweep will be started asynchronous after settings update was successful
+        // Sweep will be started asynchronously after settings update was successful
     } else {
         pollHold->stop();
         while (pollHold->isActive());
@@ -469,6 +483,34 @@ void MainWindow::on_btnStart_clicked()
 
 void MainWindow::on_btnSave_clicked()
 {
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data" ,tr("CSV-Files (*.csv)"));
+    QFile file(fileName + ".csv");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        ui->statusbar->showMessage("Could not open file!");
+        return;
+    }
+    QTextStream out(&file);
 
+    QVector<QString> complex;
+
+    // Calculate complex number from magnitude and phase
+    for (int i = 0; i < trace_data.size(); i++) {
+        double magnitudeLin = std::pow(10, trace_data.at(i).magnitude / 20);
+        double phaseRadian = trace_data.at(i).phase * M_PI / 180;
+        double a = magnitudeLin * std::cos(phaseRadian);
+        double b = magnitudeLin * std::sin(phaseRadian);
+        complex.push_back(QString("%1%2%3j").arg(a, 0, 'E').arg(b > 0 ? "+" : "").arg(b, 0, 'E'));
+    }
+
+    //Write header
+    out << "Frequency [Hz],Magnitude [dB],Phase [deg],complex number\r\n";
+
+    for (int i = 0; i < trace_data.size(); i++) {
+        out << QString("%1,%2,%3,%4\r\n").arg(trace_data.at(i).frequency, 0, 'E').arg(trace_data.at(i).magnitude, 0, 'E')
+                   .arg(trace_data.at(i).phase, 0, 'E').arg(complex.at(i));
+    }
+
+    file.close();
+    ui->statusbar->showMessage("File written!");
 }
 

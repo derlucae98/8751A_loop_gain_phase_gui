@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QtCharts>
 #include <math.h>
+#include <QFile>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -78,11 +80,16 @@ private:
     QString phase_raw;
     QVector<trace_data_t> trace_data;
 
+    void init_plot();
+    QChart *chart = nullptr;
+    QChartView *chartView = nullptr;
+    QVBoxLayout *layout = nullptr;
     QLineSeries *magnitude = nullptr;
     QLineSeries *phase = nullptr;
     QLogValueAxis *axisX = nullptr;
     QValueAxis *axisY = nullptr;
     QValueAxis *axisYPhase = nullptr;
+
 
     void plot_data();
 
