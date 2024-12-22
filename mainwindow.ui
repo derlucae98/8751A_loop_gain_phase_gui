@@ -242,6 +242,12 @@
       </item>
       <item>
        <widget class="QGroupBox" name="grpReceive">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>204</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>251</width>
@@ -448,11 +454,22 @@
           </layout>
          </item>
          <item row="4" column="0">
-          <widget class="QCheckBox" name="avgEn">
-           <property name="text">
-            <string>Averaging</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QCheckBox" name="avgEn">
+             <property name="text">
+              <string>Averaging</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="unwrapPhase">
+             <property name="text">
+              <string>Unwrap phase</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -476,6 +493,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btnGetTrace">
+          <property name="text">
+           <string>Get trace</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="btnSave">
           <property name="text">
            <string>Save data</string>
@@ -488,6 +512,9 @@
     </item>
     <item row="0" column="1">
      <widget class="QFrame" name="chart">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>

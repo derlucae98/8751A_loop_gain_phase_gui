@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->btnStart->setEnabled(false);
     ui->btnSave->setEnabled(false);
     init_plot();
+    ui->chart->setEnabled(false);
+    ui->btnGetTrace->setEnabled(false);
 
     gpib = new PrologixGPIB(this);
     QHostAddress addr = QHostAddress("192.168.178.153");
@@ -325,6 +327,7 @@ void MainWindow::unpack_raw_data()
     plot_data();
     ui->statusbar->showMessage("Ready.");
     ui->btnSave->setEnabled(true);
+    ui->btnGetTrace->setEnabled(true);
 }
 
 void MainWindow::disable_ui()
@@ -338,6 +341,9 @@ void MainWindow::disable_ui()
     foreach (QWidget* w, grpReceive) {
         w->setEnabled(false);
     }
+
+    ui->chart->setEnabled(false);
+    ui->btnGetTrace->setEnabled(false);
 }
 
 void MainWindow::enable_ui()
@@ -352,6 +358,8 @@ void MainWindow::enable_ui()
         w->setEnabled(true);
     }
     ui->btnStart->setText("Start");
+
+    ui->chart->setEnabled(true);
 }
 
 void MainWindow::init_plot()
@@ -483,7 +491,7 @@ void MainWindow::on_btnStart_clicked()
 
 void MainWindow::on_btnSave_clicked()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data" ,tr("CSV-Files (*.csv)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data", tr("CSV-Files (*.csv)"));
     QFile file(fileName + ".csv");
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         ui->statusbar->showMessage("Could not open file!");
@@ -512,5 +520,20 @@ void MainWindow::on_btnSave_clicked()
 
     file.close();
     ui->statusbar->showMessage("File written!");
+}
+
+
+void MainWindow::on_chart_customContextMenuRequested(const QPoint &pos)
+{
+    if (ui->chart->isEnabled()) {
+        QMenu menu;
+        menu.addAction("Save image");
+        auto res = menu.exec(ui->chart->mapToGlobal(pos));
+
+        if (res != nullptr) {
+
+        }
+    }
+
 }
 

@@ -12,6 +12,7 @@
 #include <math.h>
 #include <QFile>
 #include <QFileDialog>
+#include <QMenu>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,6 +31,8 @@ private slots:
 
 
     void on_btnSave_clicked();
+
+    void on_chart_customContextMenuRequested(const QPoint &pos);
 
 private:
 
