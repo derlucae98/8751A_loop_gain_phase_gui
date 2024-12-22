@@ -11,6 +11,8 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    mainwindow_impedance.cpp \
+    mainwindow_loopgain.cpp \
     prologixgpib.cpp
 
 HEADERS += \

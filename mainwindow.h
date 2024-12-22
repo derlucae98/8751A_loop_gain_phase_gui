@@ -36,6 +36,9 @@ private slots:
 
 private:
 
+    void init_loopgain();
+    void init_impedance();
+
     enum last_action_t{
         ACTION_NO_ACTION,
         ACTION_INSTRUMENT_REQUEST,
