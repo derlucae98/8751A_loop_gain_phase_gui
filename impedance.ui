@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Impedance</class>
+ <widget class="QMainWindow" name="Impedance">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1440</width>
+    <height>811</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>20</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Calibrate</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="grpSource_2">
+    <property name="geometry">
+     <rect>
+      <x>71</x>
+      <y>50</y>
+      <width>251</width>
+      <height>163</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>251</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="title">
+     <string>Source</string>
+    </property>
+    <widget class="QLabel" name="label_13">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>63</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Stop frequency</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="stopFreq_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>63</y>
+       <width>71</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>20000000</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_14">
+     <property name="geometry">
+      <rect>
+       <x>217</x>
+       <y>63</y>
+       <width>20</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string> Hz</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="startFreq_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>32</y>
+       <width>71</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>1000</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_9">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>32</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Start frequency</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_11">
+     <property name="geometry">
+      <rect>
+       <x>217</x>
+       <y>32</y>
+       <width>20</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string> Hz</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>94</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Number of points</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="numberOfPoints_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>94</y>
+       <width>52</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>51</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>101</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>201</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>401</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>801</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_17">
+     <property name="geometry">
+      <rect>
+       <x>194</x>
+       <y>125</y>
+       <width>27</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>30</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>dBm</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_16">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>125</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Ouput level</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="outputPower_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>125</y>
+       <width>48</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>-50.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>15.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>100</y>
+      <width>130</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_22">
+       <property name="text">
+        <string>View:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="view_u_imp">
+       <item>
+        <property name="text">
+         <string>|Z|</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>L</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>R</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QFrame" name="chart_imp_u">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>180</y>
+      <width>1000</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>1000</width>
+      <height>200</height>
+     </size>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="grpReceive_2">
+    <property name="geometry">
+     <rect>
+      <x>71</x>
+      <y>219</y>
+      <width>225</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>120</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>251</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="title">
+     <string>Receiver</string>
+    </property>
+    <widget class="QLabel" name="label_20">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>94</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Bandwidth</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="ifBw_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>94</y>
+       <width>71</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>5</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>2 Hz</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>20 Hz</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>200 Hz</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>1 kHz</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>4 kHz</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Auto</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_18">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>32</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Attenuator R</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="attenR_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>32</y>
+       <width>64</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>0 dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>20 dB</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_19">
+     <property name="geometry">
+      <rect>
+       <x>14</x>
+       <y>63</y>
+       <width>120</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>120</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Attenuator A</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="attenA_imp">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>63</y>
+       <width>64</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>0 dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>20 dB</string>
+      </property>
+     </item>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="btnStart_imp">
+    <property name="geometry">
+     <rect>
+      <x>72</x>
+      <y>357</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>9999</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Start</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnHold_imp">
+    <property name="geometry">
+     <rect>
+      <x>158</x>
+      <y>357</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Hold</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSave_imp">
+    <property name="geometry">
+     <rect>
+      <x>244</x>
+      <y>357</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save data</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>1160</x>
+      <y>450</y>
+      <width>130</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_21">
+       <property name="text">
+        <string>View:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="view_l_imp">
+       <item>
+        <property name="text">
+         <string>|Z|</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>L</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>R</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QFrame" name="chart_imp_l">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>490</y>
+      <width>1000</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>1000</width>
+      <height>200</height>
+     </size>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1440</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
