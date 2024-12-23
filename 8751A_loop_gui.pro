@@ -13,14 +13,20 @@ SOURCES += \
     mainwindow.cpp \
     mainwindow_impedance.cpp \
     mainwindow_loopgain.cpp \
-    prologixgpib.cpp
+    networksettingsdialog.cpp \
+    prologixgpib.cpp \
+    startdialog.cpp
 
 HEADERS += \
     mainwindow.h \
-    prologixgpib.h
+    networksettingsdialog.h \
+    prologixgpib.h \
+    startdialog.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    networksettingsdialog.ui \
+    startdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

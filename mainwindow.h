@@ -63,10 +63,12 @@ private:
 
     Ui::MainWindow *ui;
 
-    PrologixGPIB *gpib = nullptr;
+
     void request_instrument();
     void init_instrument();
     void instrument_init_commands(QVector<QString> &commands);
+
+    PrologixGPIB *gpib = nullptr;
     quint8 instrument_gpib_id;
     void gpib_response(QString resp);
     void update_settings();

@@ -10,29 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    gpib = new PrologixGPIB(this);
-    QHostAddress addr = QHostAddress("192.168.178.153");
-    QObject::connect(gpib, &PrologixGPIB::response, this, &MainWindow::gpib_response);
-    QObject::connect(gpib, &PrologixGPIB::stateChanged, this, [=](QAbstractSocket::SocketState state) {
-        qDebug() << state;
-        switch (state) {
-        case QAbstractSocket::ConnectingState:
-            ui->statusbar->showMessage("Connecting to instrument...");
-            break;
-        case QAbstractSocket::UnconnectedState:
-            ui->statusbar->showMessage("Could not connect to instrument!");
-            break;
-        case QAbstractSocket::ConnectedState:
-            lastAction = ACTION_NO_ACTION;
-            request_instrument();
-            break;
-        default:
-            break;
-        }
-    });
 
-    instrument_gpib_id = 17;
-    gpib->init(addr);
 
 
 
