@@ -146,7 +146,6 @@ void StartDialog::on_btnLoopgain_clicked()
     loopgain = new Loopgain(gpib, gpibId, this);
     QObject::connect(loopgain, &Loopgain::destroyed, this, [=] {
         this->show();
-        loopgain->deleteLater();
     });
 
     loopgain->show();
@@ -159,7 +158,6 @@ void StartDialog::on_btnImpedance_clicked()
     impedance = new Impedance(gpib, gpibId, this);
     QObject::connect(impedance, &Impedance::destroyed, this, [=] {
         this->show();
-        impedance->deleteLater();
     });
 
     impedance->show();
