@@ -5,14 +5,12 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 
-const quint16 PROLOGIX_PORT = 1234;
-
 class PrologixGPIB : public QObject
 {
     Q_OBJECT
 public:
     explicit PrologixGPIB(QObject *parent = nullptr);
-    void init(QHostAddress &ip);
+    void init(QHostAddress &ip, quint16 port);
     void deinit();
     void send_command(quint16 gpibAddr, const QString command);
 

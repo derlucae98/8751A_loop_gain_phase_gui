@@ -5,6 +5,8 @@
 #include "networksettingsdialog.h"
 #include <prologixgpib.h>
 #include <QMessageBox>
+#include <QSettings>
+#include <QFile>
 
 namespace Ui {
 class StartDialog;
@@ -21,12 +23,16 @@ public:
 private:
     Ui::StartDialog *ui;
     PrologixGPIB *gpib = nullptr;
-    quint8 instrument_gpib_id;
+    quint16 gpibId;
     QHostAddress addr;
+    quint16 port;
     void gpib_response_slot(QString resp);
     void gpib_state(QAbstractSocket::SocketState state);
     void gpib_disconected();
     void request_instrument();
+    void write_default_settings();
+    void write_settings();
+    void read_settings();
 
 signals:
     void gpib_response(QString);

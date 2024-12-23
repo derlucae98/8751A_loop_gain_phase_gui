@@ -11,12 +11,12 @@ PrologixGPIB::PrologixGPIB(QObject *parent) : QObject(parent)
     QObject::connect(socket, &QTcpSocket::readyRead, this, &PrologixGPIB::read_socket);
 }
 
-void PrologixGPIB::init(QHostAddress &ip)
+void PrologixGPIB::init(QHostAddress &ip, quint16 port)
 {
     if (!socket) {
         return;
     }
-    socket->connectToHost(ip, PROLOGIX_PORT, QIODevice::ReadWrite);
+    socket->connectToHost(ip, port, QIODevice::ReadWrite);
 }
 
 void PrologixGPIB::deinit()

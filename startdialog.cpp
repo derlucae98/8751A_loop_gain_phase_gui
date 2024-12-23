@@ -15,14 +15,16 @@ StartDialog::StartDialog(QWidget *parent)
     ui->btnImpedance->setEnabled(false);
 
     gpib = new PrologixGPIB(this);
-    addr = QHostAddress("192.168.178.153");
     QObject::connect(gpib, &PrologixGPIB::response, this, &StartDialog::gpib_response);
     QObject::connect(gpib, &PrologixGPIB::response, this, &StartDialog::gpib_response_slot);
     QObject::connect(gpib, &PrologixGPIB::stateChanged, this, &StartDialog::gpib_state);
     QObject::connect(gpib, &PrologixGPIB::disconnected, this, &StartDialog::gpib_disconected);
 
-    instrument_gpib_id = 17;
-    gpib->init(addr);
+    if (!QFile::exists("config.ini")) {
+        write_default_settings();
+    }
+
+    read_settings();
 
 }
 
@@ -77,21 +79,64 @@ void StartDialog::request_instrument()
 {
     // Is the 8751A on the bus?
     ui->status->setText("Requesting instrument...");
-    gpib->send_command(instrument_gpib_id, "*IDN?");
+    gpib->send_command(gpibId, "*IDN?");
+}
+
+void StartDialog::write_default_settings()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+
+    QHostAddress addr = QHostAddress("192.168.178.153");
+    quint16 port = 1234;
+    quint16 id = 17;
+
+    settings.beginGroup("Network");
+    settings.setValue("IP-Address", addr.toString());
+    settings.setValue("Port", port);
+    settings.setValue("GPIB-ID", id);
+    settings.endGroup();
+    settings.sync();
+}
+
+void StartDialog::write_settings()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Network");
+    settings.setValue("IP-Address", this->addr.toString());
+    settings.setValue("Port", this->port);
+    settings.setValue("GPIB-ID", this->gpibId);
+    settings.endGroup();
+    settings.sync();
+}
+
+void StartDialog::read_settings()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+
+    QString addr;
+    addr = settings.value("Network/IP-Address").toString();
+    this->addr.setAddress(addr);
+    this->port = settings.value("Network/Port").toUInt();
+    this->gpibId = settings.value("Network/GPIB-ID").toUInt();
+
+    gpib->init(this->addr, this->port);
 }
 
 void StartDialog::on_btnRetry_clicked()
 {
-    gpib->init(addr);
+    gpib->init(this->addr, this->port);
 }
 
 
 void StartDialog::on_btnSettings_clicked()
 {
     NetworkSettingsDialog nw;
+    nw.set_data(this->addr, this->port, this->gpibId);
     int ret = nw.exec();
     if (ret == QDialog::Accepted) {
         // save new settings
+        nw.get_data(this->addr, this->port, this->gpibId);
+        write_settings();
     }
 }
 
