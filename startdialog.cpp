@@ -11,8 +11,8 @@ StartDialog::StartDialog(QWidget *parent)
 
     ui->status->setText("Connecting to instrument...");
     ui->btnRetry->setEnabled(false);
-    ui->btnLoopgain->setEnabled(false);
-    ui->btnImpedance->setEnabled(false);
+//    ui->btnLoopgain->setEnabled(false);
+//    ui->btnImpedance->setEnabled(false);
 
     gpib = new PrologixGPIB(this);
     QObject::connect(gpib, &PrologixGPIB::response, this, &StartDialog::gpib_response);
