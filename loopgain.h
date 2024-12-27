@@ -5,6 +5,9 @@
 #include <QCloseEvent>
 #include <hp8751a.h>
 #include <QtCharts>
+#include <QStateMachine>
+#include <QState>
+
 
 namespace Ui {
 class Loopgain;
@@ -36,6 +39,7 @@ private:
     void update_stimulus();
     void update_receiver();
     void start_sweep();
+    void hold_sweep();
     void fit_trace(quint8 channel = 0);
     void get_stimulus();
     void get_magnitude_data();
@@ -48,6 +52,7 @@ private:
     void init_plot();
     void plot_data();
     void poll_hold();
+
 
 
     QString stimulus_raw;
@@ -73,6 +78,11 @@ private slots:
     void on_btnHold_clicked();
     void on_btnGetTrace_clicked();
     void on_btnExport_clicked();
+
+signals:
+    void responseOK(QPrivateSignal);
+    void responseNOK(QPrivateSignal);
+
 };
 
 #endif // LOOPGAIN_H

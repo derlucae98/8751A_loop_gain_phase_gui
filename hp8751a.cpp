@@ -9,13 +9,17 @@ HP8751A::HP8751A(PrologixGPIB *gpib, quint16 gpibId, QObject *parent) : QObject(
     respTimer->setInterval(5000); // 5 second response timeout
     respTimer->setSingleShot(true);
     QObject::connect(respTimer, &QTimer::timeout, this, &HP8751A::resp_timeout);
-    lastCommand = __CMD_NONE;
-    channel = -1;
+    nextCmd = true;
+
+    sendCmdTimer = new QTimer(this);
+    sendCmdTimer->setInterval(1);
+    QObject::connect(sendCmdTimer, &QTimer::timeout, this, &HP8751A::send_timer_timeout);
+
 }
 
 void HP8751A::identify()
 {
-    query_command(CMD_IDENTIFY, "*IDN?");
+    enqueue_cmd(CMD_IDENTIFY, "*IDN?", -1, CMD_TYPE_QUERY);
 }
 
 void HP8751A::init_transferfunction()
@@ -38,7 +42,7 @@ void HP8751A::init_transferfunction()
     commands.append("CHAN2;"); // select channel 2
     commands.append("AR;"); // Select A/R function
     commands.append("FMT PHAS"); // Select format: phase
-    send_command(CMD_INIT_TRANSFERFUNCTION, commands);
+    enqueue_cmd(CMD_INIT_TRANSFERFUNCTION, commands, -1, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::init_impedance()
@@ -56,7 +60,7 @@ void HP8751A::set_stimulus(quint32 fStart, quint32 fStop, quint16 points, qint16
     if (clearPowerTrip) {
         commands.append(";CLEPTRIP");
     }
-    send_command(CMD_SET_STIMULUS, commands);
+    enqueue_cmd(CMD_SET_STIMULUS, commands, -1, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::set_receiver(bool attenR, bool attenA, ifbw_t ifbw)
@@ -92,12 +96,12 @@ void HP8751A::set_receiver(bool attenR, bool attenA, ifbw_t ifbw)
             commands.append(QString("IFBWAUTO"));
             break;
     }
-    send_command(CMD_SET_RECEIVER, commands);
+    enqueue_cmd(CMD_SET_RECEIVER, commands, -1, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::poll_hold()
 {
-    query_command(CMD_POLL_HOLD, "HOLD?");
+    enqueue_cmd(CMD_POLL_HOLD, "HOLD?", -1, CMD_TYPE_QUERY);
 }
 
 void HP8751A::start_sweep(bool avgEn, quint16 averFact)
@@ -114,12 +118,12 @@ void HP8751A::start_sweep(bool avgEn, quint16 averFact)
         commands.append("CHAN1;AVEROFF;CHAN2;AVEROFF;");
         commands.append("SING");
     }
-    send_command(CMD_START_SWEEP, commands);
+    enqueue_cmd(CMD_START_SWEEP, commands, -1, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::cancel_sweep()
 {
-    send_command(CMD_CANCEL_SWEEP, "HOLD");
+    enqueue_cmd(CMD_CANCEL_SWEEP, "HOLD", -1, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::fit_trace(quint8 channel)
@@ -133,15 +137,14 @@ void HP8751A::fit_trace(quint8 channel)
         commands.append("AUTO;");
         commands.append("CHAN1");
     }
-    send_command(CMD_FIT_TRACE, commands);
-    this->channel = channel;
+    enqueue_cmd(CMD_FIT_TRACE, commands, (qint8)channel, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::get_stimulus()
 {
     QString commands;
     commands.append("OUTPSTIM?");
-    query_command(CMD_GET_STIMULUS, commands);
+    enqueue_cmd(CMD_GET_STIMULUS, commands, -1, CMD_TYPE_QUERY);
 }
 
 void HP8751A::get_channel_data(quint8 channel)
@@ -152,8 +155,7 @@ void HP8751A::get_channel_data(quint8 channel)
     }
     commands.append(QString("CHAN%1;").arg(channel + 1));
     commands.append("OUTPFORM?");
-    query_command(CMD_GET_CHANNEL_DATA, commands);
-    this->channel = channel;
+    enqueue_cmd(CMD_GET_CHANNEL_DATA, commands, (qint8)channel, CMD_TYPE_QUERY);
 }
 
 void HP8751A::set_phase_format(quint8 channel, bool unwrapPhase)
@@ -172,8 +174,7 @@ void HP8751A::set_phase_format(quint8 channel, bool unwrapPhase)
         commands.append("FMT PHAS");
     }
 
-    send_command(CMD_SET_PHASE_FORMAT, commands);
-    this->channel = channel;
+    enqueue_cmd(CMD_SET_PHASE_FORMAT, commands, (qint8)channel, CMD_TYPE_QUERY);
 }
 
 void HP8751A::gpib_response(QString resp)
@@ -183,36 +184,62 @@ void HP8751A::gpib_response(QString resp)
     if (!resp.contains("\n")) {
         return;
     }
-    emit instrument_response(lastCommand, respMerge, channel);
+    cmd_queue_t cmd = cmdQueue.takeFirst();
+    cmdQueue.squeeze();
+    emit instrument_response(cmd.cmd, respMerge, cmd.channel);
+    nextCmd = true;
 
     respMerge.clear();
-    channel = -1;
-    lastCommand = __CMD_NONE;
     respTimer->stop();
 }
 
 void HP8751A::resp_timeout()
 {
     qDebug() << "TIMEOUT";
-    channel = -1;
-    lastCommand = __CMD_NONE;
+
     emit response_timeout();
+    cmdQueue.pop_front();
+    nextCmd = true;
 }
 
-void HP8751A::send_command(command_t cmd, QString cmdString)
+void HP8751A::send_command(QString cmdString)
 {
     QString temp;
     temp = cmdString + ";*OPC?";
-    query_command(cmd, temp);
+    query_command(temp);
 }
 
-void HP8751A::query_command(command_t cmd, QString cmdString)
+void HP8751A::query_command(QString cmdString)
 {
     if (!gpib) {
         return;
     }
 
     gpib->send_command(gpibId, cmdString);
-    lastCommand = cmd;
-    //respTimer->start();
+}
+
+void HP8751A::send_timer_timeout()
+{
+    /* 1) Queue is empty, nextCmd = true: Last CMD has been sent. Nothing to do here
+     * 2) Queue is empty, nextCmd = false: Last command in Queue has been sent. Waiting for response. Nothing to do here
+     * 3) Queue is not empty, nextCmd = true: Send next command; clear nextCmd and wait for response
+     * 4) Queue is not empty, nextCmd = false: Current cmd pending. Waiting for response. Nothing to do here
+     */
+
+    if (!cmdQueue.isEmpty() && nextCmd) {
+        cmd_queue_t next = cmdQueue.first();
+        if (next.type == CMD_TYPE_COMMAND) {
+            send_command(next.cmdString);
+        } else {
+            query_command(next.cmdString);
+        }
+        nextCmd = false;
+        respTimer->start();
+    }
+}
+
+void HP8751A::enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type)
+{
+    cmdQueue.push_back({cmd, cmdString, channel, type});
+    sendCmdTimer->start();
 }

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <prologixgpib.h>
 #include <QTimer>
+#include <QVector>
 
 class HP8751A : public QObject
 {
@@ -82,13 +83,35 @@ public:
 private:
     PrologixGPIB *gpib = nullptr;
     quint16 gpibId;
-    command_t lastCommand;
     void gpib_response(QString resp);
     QTimer *respTimer = nullptr;
     void resp_timeout();
-    void send_command(command_t cmd, QString cmdString); // Appends *OPC? to the command list
-    void query_command(command_t cmd, QString cmdString);
-    qint8 channel;
+    void send_command(QString cmdString); // Appends *OPC? to the command list
+    void query_command(QString cmdString);
+
+    QTimer *sendCmdTimer = nullptr;
+    void send_timer_timeout();
+
+
+
+    enum cmd_type_t {
+        CMD_TYPE_COMMAND,
+        CMD_TYPE_QUERY
+    };
+
+    struct cmd_queue_t {
+        command_t cmd;
+        QString cmdString;
+        qint8 channel;
+        cmd_type_t type;
+    };
+
+    void enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type);
+    bool nextCmd;
+
+
+
+    QVector<cmd_queue_t> cmdQueue;
 
 signals:
     void instrument_response(command_t cmd, QString resp, qint8 channel); // Channel parameter contains 0 or 1 for a channel specific command, -1 otherwise
