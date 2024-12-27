@@ -20,7 +20,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_16">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btnExport">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -56,7 +56,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="btnGetTrace">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -92,7 +92,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_4">
+         <widget class="QPushButton" name="btnContinous">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -131,7 +131,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_5">
+         <widget class="QPushButton" name="btnSingle">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -165,12 +165,12 @@
            </size>
           </property>
           <property name="checkable">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_6">
+         <widget class="QPushButton" name="btnHold">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -204,7 +204,7 @@
            </size>
           </property>
           <property name="checkable">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -233,7 +233,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox">
+             <widget class="QSpinBox" name="aref">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -279,7 +279,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_2">
+             <widget class="QSpinBox" name="ascale">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -309,7 +309,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBox_2">
+         <widget class="QCheckBox" name="aAutoscale">
           <property name="text">
            <string>Auto scale</string>
           </property>
@@ -340,7 +340,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_3">
+             <widget class="QSpinBox" name="phiref">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -386,7 +386,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_4">
+             <widget class="QSpinBox" name="phiscale">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -416,7 +416,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBox_3">
+         <widget class="QCheckBox" name="phiAutoscale">
           <property name="text">
            <string>Auto scale</string>
           </property>
@@ -653,14 +653,14 @@
          <item row="4" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="ListmodeEn">
              <property name="text">
               <string>List mode</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_2">
+            <widget class="QPushButton" name="btnEditList">
              <property name="text">
               <string>Edit List</string>
              </property>
@@ -793,7 +793,7 @@
            <item>
             <widget class="QComboBox" name="ifBw">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <item>
               <property name="text">
@@ -818,6 +818,11 @@
              <item>
               <property name="text">
                <string>4 kHz</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Auto</string>
               </property>
              </item>
             </widget>

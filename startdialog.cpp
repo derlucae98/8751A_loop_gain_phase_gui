@@ -9,32 +9,42 @@ StartDialog::StartDialog(QWidget *parent)
     this->setWindowFlags(Qt::Window);
     this->setFixedSize(this->size());
 
-    ui->status->setText("Connecting to instrument...");
-    ui->btnRetry->setEnabled(false);
-//    ui->btnLoopgain->setEnabled(false);
-//    ui->btnImpedance->setEnabled(false);
-
-    gpib = new PrologixGPIB(this);
-    QObject::connect(gpib, &PrologixGPIB::response, this, &StartDialog::gpib_response);
-    QObject::connect(gpib, &PrologixGPIB::response, this, &StartDialog::gpib_response_slot);
-    QObject::connect(gpib, &PrologixGPIB::stateChanged, this, &StartDialog::gpib_state);
-    QObject::connect(gpib, &PrologixGPIB::disconnected, this, &StartDialog::gpib_disconected);
-
     if (!QFile::exists("config.ini")) {
         write_default_settings();
     }
 
+
+
+    ui->status->setText("Connecting to instrument...");
+    ui->btnRetry->setEnabled(false);
+    ui->btnLoopgain->setEnabled(false);
+    ui->btnImpedance->setEnabled(false);
+
+    gpib = new PrologixGPIB(this);
+    QObject::connect(gpib, &PrologixGPIB::stateChanged, this, &StartDialog::gpib_state);
+    QObject::connect(gpib, &PrologixGPIB::disconnected, this, &StartDialog::gpib_disconected);
+
     read_settings();
 
+    hp = new HP8751A(gpib, gpibId, this);
+    QObject::connect(hp, &HP8751A::instrument_response, this, &StartDialog::instrument_response);
+    QObject::connect(hp, &HP8751A::instrument_response, this, &StartDialog::gpib_response_slot);
+    QObject::connect(hp, &HP8751A::response_timeout, this, &StartDialog::instrument_response_timeout);
 }
 
 StartDialog::~StartDialog()
 {
+    hp->deleteLater();
+    gpib->deleteLater();
     delete ui;
 }
 
-void StartDialog::gpib_response_slot(QString resp)
+void StartDialog::gpib_response_slot(HP8751A::command_t cmd, QString resp)
 {
+    if (cmd != HP8751A::CMD_IDENTIFY) {
+        return;
+    }
+
     if (resp.contains("8751A")) {
         ui->status->setText("Instrument found!");
         ui->btnRetry->setEnabled(false);
@@ -79,7 +89,7 @@ void StartDialog::request_instrument()
 {
     // Is the 8751A on the bus?
     ui->status->setText("Requesting instrument...");
-    gpib->send_command(gpibId, "*IDN?");
+    hp->identify();
 }
 
 void StartDialog::write_default_settings()
@@ -143,7 +153,7 @@ void StartDialog::on_btnSettings_clicked()
 
 void StartDialog::on_btnLoopgain_clicked()
 {
-    loopgain = new Loopgain(gpib, gpibId, this);
+    loopgain = new Loopgain(hp, this);
     QObject::connect(loopgain, &Loopgain::destroyed, this, [=] {
         this->show();
     });
@@ -155,7 +165,7 @@ void StartDialog::on_btnLoopgain_clicked()
 
 void StartDialog::on_btnImpedance_clicked()
 {
-    impedance = new Impedance(gpib, gpibId, this);
+    impedance = new Impedance(hp, this);
     QObject::connect(impedance, &Impedance::destroyed, this, [=] {
         this->show();
     });

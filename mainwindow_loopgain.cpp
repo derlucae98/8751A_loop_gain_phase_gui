@@ -20,24 +20,7 @@ void MainWindow::init_loopgain()
 
 void MainWindow::instrument_init_commands(QVector<QString> &commands)
 {
-    commands.push_back("POWE -20;");
-    commands.push_back("STAR 10;");
-    commands.push_back("STOP 1MHZ;");
-    commands.push_back("POIN 201;");
-    commands.push_back("ATTIA20DB;");
-    commands.push_back("ATTIR20DB;");
-    commands.push_back("IFBW 20;");
-    commands.push_back("LOGFREQ;");
-    commands.push_back("DUACON;");
-    commands.push_back("SPLDON;");
-    commands.push_back("HOLD;");
-    commands.push_back("CHAN1;");
-    commands.push_back("AR;");
-    commands.push_back("FMT LOGM;");
-    commands.push_back("CHAN2;");
-    commands.push_back("AR;");
-    commands.push_back("FMT EXPP;");
-    commands.push_back("*OPC?");
+
 }
 
 

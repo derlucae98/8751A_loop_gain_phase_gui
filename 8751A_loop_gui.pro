@@ -9,6 +9,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    hp8751a.cpp \
     impedance.cpp \
     loopgain.cpp \
     main.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
     startdialog.cpp
 
 HEADERS += \
+    hp8751a.h \
     impedance.h \
     loopgain.h \
     mainwindow.h \
@@ -41,3 +43,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     res.qrc
+
+STATECHARTS +=

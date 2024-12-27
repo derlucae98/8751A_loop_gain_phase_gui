@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QCloseEvent>
-#include <prologixgpib.h>
+#include <hp8751a.h>
 
 namespace Ui {
 class Impedance;
@@ -14,11 +14,10 @@ class Impedance : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit Impedance(PrologixGPIB *gpib, quint16 gpibId, QWidget *parent = nullptr);
+    explicit Impedance(HP8751A *hp, QWidget *parent = nullptr);
     ~Impedance();
     void closeEvent(QCloseEvent *event);
-    PrologixGPIB *gpib = nullptr;
-    quint16 gpibId;
+    HP8751A *hp = nullptr;
 
 private:
     Ui::Impedance *ui;

@@ -40,14 +40,15 @@ void PrologixGPIB::send_command(quint16 gpibAddr, const QString command)
     }
     QString addr = QString("++addr %1\r").arg(gpibAddr);
     socket->write(addr.toLocal8Bit());
-    QString cmd = command + QStringLiteral("\r");
+
+    QString cmd = command + QStringLiteral("\r\n");
     socket->write(cmd.toLocal8Bit());
 }
 
 void PrologixGPIB::socket_connected()
 {
     //Send init commands to Prologix GPIB-Ethernet adapter
-    socket->write("++ver\r");
+    //socket->write("++ver\r");
     socket->write("++mode 1\r");
     socket->write("++auto 1\r");
     socket->write("++eoi 1\r");
@@ -64,7 +65,10 @@ void PrologixGPIB::read_socket()
     if (!socket->isOpen()) {
         return;
     }
-    QString resp = socket->readAll();
+    QString resp;
+    while (socket->bytesAvailable()) {
+        resp = socket->readAll();
+    }
     emit response(resp);
 }
 

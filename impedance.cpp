@@ -1,13 +1,12 @@
 #include "impedance.h"
 #include "ui_impedance.h"
 
-Impedance::Impedance(PrologixGPIB *gpib, quint16 gpibId, QWidget *parent) :
+Impedance::Impedance(HP8751A *hp, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Impedance)
 {
     ui->setupUi(this);
-    this->gpib = gpib;
-    this->gpibId = gpibId;
+    this->hp = hp;
 }
 
 Impedance::~Impedance()

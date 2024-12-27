@@ -8,7 +8,8 @@
 #include <QSettings>
 #include <QFile>
 #include "loopgain.h"
-#include "impedance.h";
+#include "impedance.h"
+#include "hp8751a.h"
 
 namespace Ui {
 class StartDialog;
@@ -25,10 +26,11 @@ public:
 private:
     Ui::StartDialog *ui;
     PrologixGPIB *gpib = nullptr;
+    HP8751A *hp = nullptr;
     quint16 gpibId;
     QHostAddress addr;
     quint16 port;
-    void gpib_response_slot(QString resp);
+    void gpib_response_slot(HP8751A::command_t cmd, QString resp);
     void gpib_state(QAbstractSocket::SocketState state);
     void gpib_disconected();
     void request_instrument();
@@ -39,7 +41,9 @@ private:
     Impedance *impedance = nullptr;
 
 signals:
-    void gpib_response(QString);
+    void instrument_response(HP8751A::command_t cmd, QString resp);
+    void instrument_response_timeout();
+
 private slots:
     void on_btnRetry_clicked();
     void on_btnSettings_clicked();
