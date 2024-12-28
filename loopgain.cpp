@@ -50,13 +50,27 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
         case HP8751A::CMD_START_SWEEP:
         case HP8751A::CMD_SET_STIMULUS:
         case HP8751A::CMD_SET_RECEIVER:
-        case HP8751A::CMD_FIT_TRACE:
             emit responseOK(QPrivateSignal());
             break;
+
         case HP8751A::CMD_CANCEL_SWEEP:
             emit responseOK(QPrivateSignal());
             ui->statusbar->showMessage("Ready.");
-        break;
+            break;
+
+        case HP8751A::CMD_FIT_TRACE:
+            {
+                QStringList respSeparate = resp.split(";");
+                if (channel == 0) {
+                    magnitudeScale = respSeparate.at(0).toFloat();
+                    magnitudeRef = respSeparate.at(1).toFloat();
+                } else {
+                    phaseScale = respSeparate.at(0).toFloat();
+                    phaseRef = respSeparate.at(1).toFloat();
+                }
+                emit responseOK(QPrivateSignal());
+                break;
+            }
 
         case HP8751A::CMD_GET_STIMULUS:
             this->stimulus_raw = resp;
@@ -266,53 +280,23 @@ void Loopgain::plot_data()
     axisX->setMin(ui->startFreq->text().toDouble());
     axisX->setMax(ui->stopFreq->text().toDouble());
 
-    double min = trace_data.at(0).magnitude;
-    double max = trace_data.at(0).magnitude;
-    //Get min and max value of the magnitude
-    for (int i = 1; i < trace_data.size(); i++) {
-        if (trace_data.at(i).magnitude < min) {
-            min = trace_data.at(i).magnitude;
-        }
-        if (trace_data.at(i).magnitude > max) {
-            max = trace_data.at(i).magnitude;
-        }
-    }
 
-    qDebug() << "Magnitude min: " << min;
-    qDebug() << "Magnitude max: " << max;
 
     axisY->setTitleText("Magnitude / dB");
     axisY->setLabelFormat("%i");
-    axisY->setMin(std::floor(min - 2.5));
-    axisY->setMax(std::ceil(max + 2.5));
+    axisY->setMin(magnitudeRef - 5 * magnitudeScale);
+    axisY->setMax(magnitudeRef + 5 * magnitudeScale);
     axisY->setTickType(QValueAxis::TicksDynamic);
-    axisY->setTickAnchor(max);
-    axisY->setTickInterval((max - min) / 5);
-    axisY->setMinorTickCount(5);
-
-    min = trace_data.at(0).phase;
-    max = trace_data.at(0).phase;
-    //Get min and max value of the phase
-    for (int i = 1; i < trace_data.size(); i++) {
-        if (trace_data.at(i).phase < min) {
-            min = trace_data.at(i).phase;
-        }
-        if (trace_data.at(i).phase > max) {
-            max = trace_data.at(i).phase;
-        }
-    }
-
-    qDebug() << "phase min: " << min;
-    qDebug() << "phase max: " << max;
+    axisY->setTickAnchor(magnitudeRef);
+    axisY->setTickInterval((axisY->max() - axisY->min()) / 10);
 
     axisYPhase->setTitleText("Phase / °");
     axisYPhase->setLabelFormat("%i");
-    axisYPhase->setMin(std::floor(min - 2.5)); //Round to nearest 5 °
-    axisYPhase->setMax(std::ceil(max + 2.5)); //Round to nearest 5 °
+    axisYPhase->setMin(phaseRef - 5 * phaseScale);
+    axisYPhase->setMax(phaseRef + 5 * phaseScale);
     axisYPhase->setTickType(QValueAxis::TicksDynamic);
-    axisYPhase->setTickAnchor(max);
-    axisYPhase->setTickInterval((max - min) / 5);
-    axisYPhase->setMinorTickCount(5);
+    axisYPhase->setTickAnchor(phaseRef);
+    axisYPhase->setTickInterval((axisYPhase->max() - axisYPhase->min()) / 10);
 }
 
 void Loopgain::poll_hold()
