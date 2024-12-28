@@ -170,7 +170,7 @@ void HP8751A::set_phase_format(quint8 channel, bool unwrapPhase)
         channel = 1;
     }
 
-    commands.append(QString("CHAN%1;").arg(channel));
+    commands.append(QString("CHAN%1;").arg(channel + 1));
 
     if (unwrapPhase) {
         commands.append("FMT EXPP");
@@ -178,7 +178,7 @@ void HP8751A::set_phase_format(quint8 channel, bool unwrapPhase)
         commands.append("FMT PHAS");
     }
 
-    enqueue_cmd(CMD_SET_PHASE_FORMAT, commands, (qint8)channel, CMD_TYPE_QUERY);
+    enqueue_cmd(CMD_SET_PHASE_FORMAT, commands, (qint8)channel, CMD_TYPE_COMMAND);
 }
 
 void HP8751A::gpib_response(QString resp)

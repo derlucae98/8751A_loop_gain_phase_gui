@@ -38,6 +38,7 @@ private:
     void init_ui();
     void update_stimulus();
     void update_receiver();
+    void update_phase_format();
     void start_sweep();
     void hold_sweep();
     void fit_trace(quint8 channel = 0);
