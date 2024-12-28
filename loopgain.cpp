@@ -12,14 +12,7 @@ Loopgain::Loopgain(HP8751A *hp, QWidget *parent) :
         return;
     }
 
-    // Why?? Inside the slot instrument_response(), different commands are requested to the instrument.
-    // This fucks up the memory of the last command inside the HP8751A object.
-    // -> signal is emitted, slot is called directly, new command requested, slot returns, lastCommand is cleared. Lost track of last command
-    // Therefore we call the instrument_response() slot asynchronously.
-    // Better approach? I currently don't know...
-    QObject::connect(hp, &HP8751A::instrument_response, this, [=](HP8751A::command_t cmd, QString resp, qint8 channel) {
-        QMetaObject::invokeMethod(this, [=]() {instrument_response(cmd, resp, channel);}, Qt::QueuedConnection);
-    });
+    QObject::connect(hp, &HP8751A::instrument_response, this, &Loopgain::instrument_response);
 
     init();
 }
@@ -491,7 +484,6 @@ void Loopgain::on_btnSingle_clicked()
     smSingleSweep->setInitialState(sUpdateStimulus);
     smSingleSweep->start();
 
-    //update_stimulus();
     disable_ui_sweep();
 }
 
