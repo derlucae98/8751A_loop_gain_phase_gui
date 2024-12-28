@@ -409,6 +409,16 @@ void Loopgain::ui_start_sweep()
     ui->btnHold->setEnabled(true);
     ui->btnExport->setEnabled(false);
     ui->btnGetTrace->setEnabled(false);
+
+    QList<QWidget*> grpSource = ui->grpSource->findChildren<QWidget*>();
+    foreach (QWidget* w, grpSource) {
+        w->setEnabled(false);
+    }
+
+    QList<QWidget*> grpReceive = ui->grpReceive->findChildren<QWidget*>();
+    foreach (QWidget* w, grpReceive) {
+        w->setEnabled(false);
+    }
 }
 
 void Loopgain::ui_stop_sweep()
@@ -419,6 +429,16 @@ void Loopgain::ui_stop_sweep()
     ui->btnExport->setEnabled(true);
     ui->btnGetTrace->setEnabled(true);
     ui->btnHold->setEnabled(false);
+
+    QList<QWidget*> grpSource = ui->grpSource->findChildren<QWidget*>();
+    foreach (QWidget* w, grpSource) {
+        w->setEnabled(true);
+    }
+
+    QList<QWidget*> grpReceive = ui->grpReceive->findChildren<QWidget*>();
+    foreach (QWidget* w, grpReceive) {
+        w->setEnabled(true);
+    }
 }
 
 void Loopgain::on_chart_customContextMenuRequested(const QPoint &pos)
