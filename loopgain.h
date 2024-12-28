@@ -79,12 +79,8 @@ private:
 
 
 private slots:
-    void on_btnSave_clicked();
     void on_chart_customContextMenuRequested(const QPoint &pos);
-    void on_btnContinous_toggled(bool checked);
-    void on_btnSingle_clicked();
     void on_btnHold_clicked();
-    void on_btnGetTrace_clicked();
     void on_btnExport_clicked();
 
 signals:

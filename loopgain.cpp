@@ -421,41 +421,6 @@ void Loopgain::ui_stop_sweep()
     ui->btnHold->setEnabled(false);
 }
 
-
-void Loopgain::on_btnSave_clicked()
-{
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data", tr("CSV-Files (*.csv)"));
-    QFile file(fileName + ".csv");
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        ui->statusbar->showMessage("Could not open file!");
-        return;
-    }
-    QTextStream out(&file);
-
-    QVector<QString> complex;
-
-    // Calculate complex number from magnitude and phase
-    for (int i = 0; i < trace_data.size(); i++) {
-        double magnitudeLin = std::pow(10, trace_data.at(i).magnitude / 20);
-        double phaseRadian = trace_data.at(i).phase * M_PI / 180;
-        double a = magnitudeLin * std::cos(phaseRadian);
-        double b = magnitudeLin * std::sin(phaseRadian);
-        complex.push_back(QString("%1%2%3j").arg(a, 0, 'E').arg(b > 0 ? "+" : "").arg(b, 0, 'E'));
-    }
-
-    //Write header
-    out << "Frequency [Hz],Magnitude [dB],Phase [deg],complex number\r\n";
-
-    for (int i = 0; i < trace_data.size(); i++) {
-        out << QString("%1,%2,%3,%4\r\n").arg(trace_data.at(i).frequency, 0, 'E').arg(trace_data.at(i).magnitude, 0, 'E')
-                   .arg(trace_data.at(i).phase, 0, 'E').arg(complex.at(i));
-    }
-
-    file.close();
-    ui->statusbar->showMessage("File written!");
-}
-
-
 void Loopgain::on_chart_customContextMenuRequested(const QPoint &pos)
 {
     if (ui->chart->isEnabled()) {
@@ -487,7 +452,35 @@ void Loopgain::on_btnHold_clicked()
 
 void Loopgain::on_btnExport_clicked()
 {
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data", tr("CSV-Files (*.csv)"));
+    QFile file(fileName + ".csv");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        ui->statusbar->showMessage("Could not open file!");
+        return;
+    }
+    QTextStream out(&file);
 
+    QVector<QString> complex;
+
+    // Calculate complex number from magnitude and phase
+    for (int i = 0; i < trace_data.size(); i++) {
+        double magnitudeLin = std::pow(10, trace_data.at(i).magnitude / 20);
+        double phaseRadian = trace_data.at(i).phase * M_PI / 180;
+        double a = magnitudeLin * std::cos(phaseRadian);
+        double b = magnitudeLin * std::sin(phaseRadian);
+        complex.push_back(QString("%1%2%3j").arg(a, 0, 'E').arg(b > 0 ? "+" : "").arg(b, 0, 'E'));
+    }
+
+    //Write header
+    out << "Frequency [Hz],Magnitude [dB],Phase [deg],complex number\r\n";
+
+    for (int i = 0; i < trace_data.size(); i++) {
+        out << QString("%1,%2,%3,%4\r\n").arg(trace_data.at(i).frequency, 0, 'E').arg(trace_data.at(i).magnitude, 0, 'E')
+                   .arg(trace_data.at(i).phase, 0, 'E').arg(complex.at(i));
+    }
+
+    file.close();
+    ui->statusbar->showMessage("File written!");
 }
 
 
