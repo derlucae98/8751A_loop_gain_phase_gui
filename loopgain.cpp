@@ -477,7 +477,8 @@ void Loopgain::on_chart_customContextMenuRequested(const QPoint &pos)
         auto res = menu.exec(ui->chart->mapToGlobal(pos));
 
         if (res != nullptr) {
-
+            QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "plot", tr("PNG-Files (*.png)"));
+            chartView->grab().save(fileName + ".png");
         }
     }
 
