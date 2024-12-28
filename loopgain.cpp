@@ -48,12 +48,15 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
             }
             break;
         case HP8751A::CMD_START_SWEEP:
-        case HP8751A::CMD_CANCEL_SWEEP:
         case HP8751A::CMD_SET_STIMULUS:
         case HP8751A::CMD_SET_RECEIVER:
         case HP8751A::CMD_FIT_TRACE:
             emit responseOK(QPrivateSignal());
             break;
+        case HP8751A::CMD_CANCEL_SWEEP:
+            emit responseOK(QPrivateSignal());
+            ui->statusbar->showMessage("Ready.");
+        break;
 
         case HP8751A::CMD_GET_STIMULUS:
             this->stimulus_raw = resp;
@@ -113,6 +116,7 @@ void Loopgain::start_sweep()
 
 void Loopgain::hold_sweep()
 {
+    ui->statusbar->showMessage("Cancelling sweep...");
     hp->cancel_sweep();
 }
 
