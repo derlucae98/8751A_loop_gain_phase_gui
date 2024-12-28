@@ -48,13 +48,14 @@ private:
     void get_phase_data();
     void unpack_raw_data();
     void disable_ui();
-    void disable_ui_sweep();
-    void enable_ui_sweep();
     void enable_ui();
     void init_plot();
     void plot_data();
     void poll_hold();
     void init_sweep_statemachine();
+
+    void ui_start_sweep();
+    void ui_stop_sweep();
 
 
 

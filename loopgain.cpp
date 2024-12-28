@@ -14,6 +14,8 @@ Loopgain::Loopgain(HP8751A *hp, QWidget *parent) :
 
     QObject::connect(hp, &HP8751A::instrument_response, this, &Loopgain::instrument_response);
 
+    ui->btnHold->setEnabled(false);
+    ui->btnExport->setEnabled(false);
     init_sweep_statemachine();
     init();
 }
@@ -44,7 +46,6 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
             if (resp == "0") {
                 emit responseNOK(QPrivateSignal());
             } else {
-                ui->statusbar->showMessage("Retrieving data...");
                 emit responseOK(QPrivateSignal());
             }
             break;
@@ -57,7 +58,6 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
 
         case HP8751A::CMD_CANCEL_SWEEP:
             emit responseOK(QPrivateSignal());
-            ui->statusbar->showMessage("Ready.");
             break;
 
         case HP8751A::CMD_FIT_TRACE:
@@ -131,8 +131,6 @@ void Loopgain::update_phase_format()
 void Loopgain::start_sweep()
 {
     hp->start_sweep(ui->avgEn->isChecked(), ui->avgSweeps->currentText().toUInt());
-    ui->statusbar->showMessage("Sweeping... Waiting for instrument.");
-    disable_ui_sweep();
 }
 
 void Loopgain::hold_sweep()
@@ -143,6 +141,8 @@ void Loopgain::hold_sweep()
 
 void Loopgain::fit_trace(quint8 channel)
 {
+    ui->btnGetTrace->setEnabled(false);
+    ui->statusbar->showMessage("Retrieving data...");
     hp->fit_trace(channel);
 }
 
@@ -196,28 +196,11 @@ void Loopgain::unpack_raw_data()
     enable_ui();
     plot_data();
     ui->statusbar->showMessage("Ready.");
-    enable_ui_sweep();
 }
 
 void Loopgain::disable_ui()
 {
     ui->centralwidget->setEnabled(false);
-}
-
-void Loopgain::disable_ui_sweep()
-{
-    ui->btnSingle->setEnabled(false);
-    ui->btnContinous->setEnabled(false);
-    ui->btnExport->setEnabled(false);
-    ui->btnGetTrace->setEnabled(false);
-}
-
-void Loopgain::enable_ui_sweep()
-{
-    ui->btnSingle->setEnabled(true);
-    ui->btnContinous->setEnabled(true);
-    ui->btnExport->setEnabled(true);
-    ui->btnGetTrace->setEnabled(true);
 }
 
 void Loopgain::enable_ui()
@@ -284,8 +267,8 @@ void Loopgain::plot_data()
     phase->append(phasePoints);
     phase->setName("Phase");
 
-    axisX->setMin(ui->startFreq->text().toDouble());
-    axisX->setMax(ui->stopFreq->text().toDouble());
+    axisX->setMin(trace_data.first().frequency);
+    axisX->setMax(trace_data.last().frequency);
 
 
 
@@ -340,10 +323,11 @@ void Loopgain::init_sweep_statemachine()
     QObject::connect(sGetTrace1, &QState::entered, this, &Loopgain::get_magnitude_data);
     QObject::connect(sGetTrace2, &QState::entered, this, &Loopgain::get_phase_data);
     QObject::connect(sPlotData, &QState::entered, this, &Loopgain::unpack_raw_data);
+    QObject::connect(sUpdateStimulus, &QState::entered, this, &Loopgain::ui_start_sweep);
 
     QObject::connect(sHold, &QState::entered, this, &Loopgain::hold_sweep);
 
-    QObject::connect(sStop, &QState::entered, this, &Loopgain::enable_ui_sweep);
+    QObject::connect(sStop, &QState::entered, this, &Loopgain::ui_stop_sweep);
     QObject::connect(sStop, &QState::entered, this, [=] {
         if (ui->btnContinous->isChecked()) {
             emit continueSweep(QPrivateSignal());
@@ -354,6 +338,7 @@ void Loopgain::init_sweep_statemachine()
 
     sIdle->addTransition(ui->btnSingle, &QPushButton::clicked, sUpdateStimulus);
     sIdle->addTransition(ui->btnContinous, &QPushButton::toggled, sUpdateStimulus);
+    sIdle->addTransition(ui->btnGetTrace, &QPushButton::clicked, sFitTrace1);
 
     sUpdateStimulus->addTransition(this, &Loopgain::responseOK, sUpdateReceiver);
     sUpdateStimulus->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
@@ -413,6 +398,29 @@ void Loopgain::init_sweep_statemachine()
     smSingleSweep->start();
 }
 
+void Loopgain::ui_start_sweep()
+{
+    ui->statusbar->showMessage("Sweeping...");
+    if (!ui->btnContinous->isChecked()) {
+        // Single sweep mode selected
+        ui->btnContinous->setEnabled(false);
+    }
+    ui->btnSingle->setEnabled(false);
+    ui->btnHold->setEnabled(true);
+    ui->btnExport->setEnabled(false);
+    ui->btnGetTrace->setEnabled(false);
+}
+
+void Loopgain::ui_stop_sweep()
+{
+    ui->statusbar->showMessage("Ready.");
+    ui->btnSingle->setEnabled(true);
+    ui->btnContinous->setEnabled(true);
+    ui->btnExport->setEnabled(true);
+    ui->btnGetTrace->setEnabled(true);
+    ui->btnHold->setEnabled(false);
+}
+
 
 void Loopgain::on_btnSave_clicked()
 {
@@ -468,33 +476,14 @@ void Loopgain::on_chart_customContextMenuRequested(const QPoint &pos)
  *      When cont. button is clicked again, it will finish the current sweep and will hold afterwards.
  *      Clicking the hold button during a sweep cancels the current sweep.
  *  When single sweep is selected, cont. button is disabled while the instrument is sweeping. Hold button is enabled.
- *  Enable export button and get trace button only when data has been received and instrument is in hold mode.
+ *  Enable export button only when data has been received and instrument is in hold mode.
  *
  */
-void Loopgain::on_btnContinous_toggled(bool checked)
-{
-
-}
-
-
-void Loopgain::on_btnSingle_clicked()
-{
-
-    disable_ui_sweep();
-}
-
 
 void Loopgain::on_btnHold_clicked()
 {
-
+    ui->btnContinous->setChecked(false);
 }
-
-
-void Loopgain::on_btnGetTrace_clicked()
-{
-
-}
-
 
 void Loopgain::on_btnExport_clicked()
 {
