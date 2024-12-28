@@ -68,7 +68,7 @@ public:
     // Cancel current sweep
     void cancel_sweep();
 
-    // Auto scale trace of selected channel
+    // Auto scale trace of selected channel, returns scale and reference value
     void fit_trace(quint8 channel);
 
     // Get stimulus frequencies from instrument

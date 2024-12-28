@@ -68,6 +68,10 @@ private:
     QLogValueAxis *axisX = nullptr;
     QValueAxis *axisY = nullptr;
     QValueAxis *axisYPhase = nullptr;
+    float magnitudeScale;
+    float magnitudeRef;
+    float phaseScale;
+    float phaseRef;
 
 
 private slots:

@@ -34,13 +34,13 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
     qDebug() << "CMD: " << cmd <<", Resp: " << resp << ", ch: " << channel;
     switch (cmd) {
         case HP8751A::CMD_INIT_TRANSFERFUNCTION:
-            if (resp == "1\n") {
+            if (resp == "1") {
                 ui->statusbar->showMessage("Instrument initialized.");
                 enable_ui();
             }
             break;
         case HP8751A::CMD_POLL_HOLD:
-            if (resp == "0\n") {
+            if (resp == "0") {
                 emit responseNOK(QPrivateSignal());
             } else {
                 ui->statusbar->showMessage("Retrieving data...");
@@ -142,10 +142,6 @@ void Loopgain::get_phase_data()
 
 void Loopgain::unpack_raw_data()
 {
-    stimulus_raw.chop(1); //Remove \n
-    magnitude_raw.chop(1); //Remove \n
-    phase_raw.chop(1);
-
     QStringList stimulus;
     stimulus = stimulus_raw.split(',');
 

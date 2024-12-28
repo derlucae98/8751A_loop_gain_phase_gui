@@ -131,13 +131,17 @@ void HP8751A::fit_trace(quint8 channel)
     QString commands;
     if (channel == 0) {
         commands.append("CHAN1;");
-        commands.append("AUTO");
+        commands.append("AUTO;");
+        commands.append("SCAL?;");
+        commands.append("REFV?");
     } else {
         commands.append("CHAN2;");
         commands.append("AUTO;");
+        commands.append("SCAL?;");
+        commands.append("REFV?;");
         commands.append("CHAN1");
     }
-    enqueue_cmd(CMD_FIT_TRACE, commands, (qint8)channel, CMD_TYPE_COMMAND);
+    enqueue_cmd(CMD_FIT_TRACE, commands, (qint8)channel, CMD_TYPE_QUERY);
 }
 
 void HP8751A::get_stimulus()
@@ -184,6 +188,7 @@ void HP8751A::gpib_response(QString resp)
     if (!resp.contains("\n")) {
         return;
     }
+    respMerge.remove("\n");
     cmd_queue_t cmd = cmdQueue.takeFirst();
     cmdQueue.squeeze();
     emit instrument_response(cmd.cmd, respMerge, cmd.channel);
