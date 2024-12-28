@@ -233,10 +233,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="aref">
+             <widget class="QDoubleSpinBox" name="aref">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -247,10 +247,10 @@
                </size>
               </property>
               <property name="minimum">
-               <number>-100</number>
+               <double>-100.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>100</number>
+               <double>100.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -279,10 +279,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="ascale">
+             <widget class="QDoubleSpinBox" name="ascale">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -292,8 +292,11 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="minimum">
+               <double>0.000000000000000</double>
+              </property>
               <property name="maximum">
-               <number>100</number>
+               <double>100.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -312,6 +315,9 @@
          <widget class="QCheckBox" name="aAutoscale">
           <property name="text">
            <string>Auto scale</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -340,10 +346,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="phiref">
+             <widget class="QDoubleSpinBox" name="phiref">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -354,10 +360,10 @@
                </size>
               </property>
               <property name="minimum">
-               <number>-360</number>
+               <double>-36000.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>360</number>
+               <double>36000.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -386,10 +392,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="phiscale">
+             <widget class="QDoubleSpinBox" name="phiscale">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -400,7 +406,7 @@
                </size>
               </property>
               <property name="maximum">
-               <number>360</number>
+               <double>360.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -419,6 +425,9 @@
          <widget class="QCheckBox" name="phiAutoscale">
           <property name="text">
            <string>Auto scale</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>

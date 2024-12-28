@@ -83,6 +83,18 @@ private slots:
     void on_btnHold_clicked();
     void on_btnExport_clicked();
 
+    void on_aAutoscale_stateChanged(int arg1);
+
+    void on_phiAutoscale_stateChanged(int arg1);
+
+    void on_aref_valueChanged(double arg1);
+
+    void on_ascale_valueChanged(double arg1);
+
+    void on_phiref_valueChanged(double arg1);
+
+    void on_phiscale_valueChanged(double arg1);
+
 signals:
     void responseOK(QPrivateSignal);
     void responseNOK(QPrivateSignal);

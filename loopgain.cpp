@@ -16,6 +16,10 @@ Loopgain::Loopgain(HP8751A *hp, QWidget *parent) :
 
     ui->btnHold->setEnabled(false);
     ui->btnExport->setEnabled(false);
+    ui->ascale->setEnabled(false);
+    ui->aref->setEnabled(false);
+    ui->phiscale->setEnabled(false);
+    ui->phiref->setEnabled(false);
     init_sweep_statemachine();
     init();
 }
@@ -270,6 +274,17 @@ void Loopgain::plot_data()
     axisX->setMin(trace_data.first().frequency);
     axisX->setMax(trace_data.last().frequency);
 
+    double magnitudeScale;
+    double magnitudeRef;
+    if (ui->aAutoscale->isChecked()) {
+        ui->ascale->setValue(this->magnitudeScale);
+        ui->aref->setValue(this->magnitudeRef);
+        magnitudeScale = this->magnitudeScale;
+        magnitudeRef = this->magnitudeRef;
+    } else {
+        magnitudeScale = ui->ascale->value();
+        magnitudeRef = ui->aref->value();
+    }
 
 
     axisY->setTitleText("Magnitude / dB");
@@ -279,6 +294,19 @@ void Loopgain::plot_data()
     axisY->setTickType(QValueAxis::TicksDynamic);
     axisY->setTickAnchor(magnitudeRef);
     axisY->setTickInterval((axisY->max() - axisY->min()) / 10);
+
+
+    double phaseScale;
+    double phaseRef;
+    if (ui->phiAutoscale->isChecked()) {
+        ui->phiscale->setValue(this->phaseScale);
+        ui->phiref->setValue(this->phaseRef);
+        phaseScale = this->phaseScale;
+        phaseRef = this->phaseRef;
+    } else {
+        phaseScale = ui->phiscale->value();
+        phaseRef = ui->phiref->value();
+    }
 
     axisYPhase->setTitleText("Phase / °");
     axisYPhase->setLabelFormat("%i");
@@ -503,4 +531,56 @@ void Loopgain::on_btnExport_clicked()
     ui->statusbar->showMessage("File written!");
 }
 
+
+
+void Loopgain::on_aAutoscale_stateChanged(int arg1)
+{
+    if (arg1) {
+        ui->ascale->setEnabled(false);
+        ui->aref->setEnabled(false);
+        ui->ascale->setValue(this->magnitudeScale);
+        ui->aref->setValue(this->magnitudeRef);
+    } else {
+        ui->ascale->setEnabled(true);
+        ui->aref->setEnabled(true);
+    }
+}
+
+
+void Loopgain::on_phiAutoscale_stateChanged(int arg1)
+{
+    if (arg1) {
+        ui->phiscale->setEnabled(false);
+        ui->phiref->setEnabled(false);
+        phaseScale = this->phaseScale;
+        phaseRef = this->phaseRef;
+    } else {
+        ui->phiscale->setEnabled(true);
+        ui->phiref->setEnabled(true);
+    }
+}
+
+
+void Loopgain::on_aref_valueChanged(double arg1)
+{
+    plot_data();
+}
+
+
+void Loopgain::on_ascale_valueChanged(double arg1)
+{
+    plot_data();
+}
+
+
+void Loopgain::on_phiref_valueChanged(double arg1)
+{
+    plot_data();
+}
+
+
+void Loopgain::on_phiscale_valueChanged(double arg1)
+{
+    plot_data();
+}
 
