@@ -14,6 +14,7 @@ Loopgain::Loopgain(HP8751A *hp, QWidget *parent) :
 
     QObject::connect(hp, &HP8751A::instrument_response, this, &Loopgain::instrument_response);
 
+    init_sweep_statemachine();
     init();
 }
 
@@ -310,6 +311,108 @@ void Loopgain::poll_hold()
     hp->poll_hold();
 }
 
+void Loopgain::init_sweep_statemachine()
+{
+    QStateMachine *smSingleSweep = new QStateMachine(this);
+    QState *sIdle = new QState();
+    QState *sUpdateStimulus = new QState();
+    QState *sUpdateReceiver = new QState();
+    QState *sSetPhaseFormat = new QState();
+    QState *sStartSweep = new QState();
+    QState *sPollHold = new QState();
+    QState *sFitTrace1 = new QState();
+    QState *sFitTrace2 = new QState();
+    QState *sGetStimulus = new QState();
+    QState *sGetTrace1 = new QState();
+    QState *sGetTrace2 = new QState();
+    QState *sPlotData = new QState();
+    QState *sHold = new QState();
+    QState *sStop = new QState();
+
+    QObject::connect(sUpdateStimulus, &QState::entered, this, &Loopgain::update_stimulus);
+    QObject::connect(sUpdateReceiver, &QState::entered, this, &Loopgain::update_receiver);
+    QObject::connect(sSetPhaseFormat, &QState::entered, this, &Loopgain::update_phase_format);
+    QObject::connect(sStartSweep, &QState::entered, this, &Loopgain::start_sweep);
+    QObject::connect(sPollHold, &QState::entered, this, &Loopgain::poll_hold);
+    QObject::connect(sFitTrace1, &QState::entered, this, [=]{fit_trace(0);});
+    QObject::connect(sFitTrace2, &QState::entered, this, [=]{fit_trace(1);});
+    QObject::connect(sGetStimulus, &QState::entered, this, &Loopgain::get_stimulus);
+    QObject::connect(sGetTrace1, &QState::entered, this, &Loopgain::get_magnitude_data);
+    QObject::connect(sGetTrace2, &QState::entered, this, &Loopgain::get_phase_data);
+    QObject::connect(sPlotData, &QState::entered, this, &Loopgain::unpack_raw_data);
+
+    QObject::connect(sHold, &QState::entered, this, &Loopgain::hold_sweep);
+
+    QObject::connect(sStop, &QState::entered, this, &Loopgain::enable_ui_sweep);
+    QObject::connect(sStop, &QState::entered, this, [=] {
+        if (ui->btnContinous->isChecked()) {
+            emit continueSweep(QPrivateSignal());
+        } else {
+            emit goIdle(QPrivateSignal());
+        }
+    });
+
+    sIdle->addTransition(ui->btnSingle, &QPushButton::clicked, sUpdateStimulus);
+    sIdle->addTransition(ui->btnContinous, &QPushButton::toggled, sUpdateStimulus);
+
+    sUpdateStimulus->addTransition(this, &Loopgain::responseOK, sUpdateReceiver);
+    sUpdateStimulus->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sUpdateReceiver->addTransition(this, &Loopgain::responseOK, sSetPhaseFormat);
+    sUpdateReceiver->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sSetPhaseFormat->addTransition(this, &Loopgain::responseOK, sStartSweep);
+    sSetPhaseFormat->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sStartSweep->addTransition(this, &Loopgain::responseOK, sPollHold);
+    sStartSweep->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sPollHold->addTransition(this, &Loopgain::responseOK, sFitTrace1);
+    sPollHold->addTransition(this, &Loopgain::responseNOK, sPollHold);
+    sPollHold->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sFitTrace1->addTransition(this, &Loopgain::responseOK, sFitTrace2);
+    sFitTrace1->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sFitTrace2->addTransition(this, &Loopgain::responseOK, sGetStimulus);
+    sFitTrace2->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sGetStimulus->addTransition(this, &Loopgain::responseOK, sGetTrace1);
+    sGetStimulus->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sGetTrace1->addTransition(this, &Loopgain::responseOK, sGetTrace2);
+    sGetTrace1->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sGetTrace2->addTransition(this, &Loopgain::responseOK, sPlotData);
+    sGetTrace2->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
+
+    sHold->addTransition(this, &Loopgain::responseOK, sStop);
+
+    sPlotData->addTransition(sPlotData, &QState::entered, sStop);
+
+    sStop->addTransition(this, &Loopgain::goIdle, sIdle);
+    sStop->addTransition(this, &Loopgain::continueSweep, sUpdateStimulus);
+
+
+    smSingleSweep->addState(sUpdateStimulus);
+    smSingleSweep->addState(sUpdateReceiver);
+    smSingleSweep->addState(sSetPhaseFormat);
+    smSingleSweep->addState(sStartSweep);
+    smSingleSweep->addState(sPollHold);
+    smSingleSweep->addState(sFitTrace1);
+    smSingleSweep->addState(sFitTrace2);
+    smSingleSweep->addState(sGetStimulus);
+    smSingleSweep->addState(sGetTrace1);
+    smSingleSweep->addState(sGetTrace2);
+    smSingleSweep->addState(sPlotData);
+    smSingleSweep->addState(sHold);
+    smSingleSweep->addState(sStop);
+    smSingleSweep->addState(sIdle);
+
+    smSingleSweep->setInitialState(sIdle);
+    smSingleSweep->start();
+}
+
 
 void Loopgain::on_btnSave_clicked()
 {
@@ -376,109 +479,6 @@ void Loopgain::on_btnContinous_toggled(bool checked)
 
 void Loopgain::on_btnSingle_clicked()
 {
-    QStateMachine *smSingleSweep = new QStateMachine(this);
-
-    QState *sUpdateStimulus = new QState();
-    QState *sUpdateReceiver = new QState();
-    QState *sSetPhaseFormat = new QState();
-    QState *sStartSweep = new QState();
-    QState *sPollHold = new QState();
-    QState *sFitTrace1 = new QState();
-    QState *sFitTrace2 = new QState();
-    QState *sGetStimulus = new QState();
-    QState *sGetTrace1 = new QState();
-    QState *sGetTrace2 = new QState();
-    QState *sPlotData = new QState();
-    QState *sHold = new QState();
-    QState *sStop = new QState();
-
-    QObject::connect(sUpdateStimulus, &QState::entered, this, &Loopgain::update_stimulus);
-    QObject::connect(sUpdateReceiver, &QState::entered, this, &Loopgain::update_receiver);
-    QObject::connect(sSetPhaseFormat, &QState::entered, this, &Loopgain::update_phase_format);
-    QObject::connect(sStartSweep, &QState::entered, this, &Loopgain::start_sweep);
-    QObject::connect(sPollHold, &QState::entered, this, &Loopgain::poll_hold);
-    QObject::connect(sFitTrace1, &QState::entered, this, [=]{fit_trace(0);});
-    QObject::connect(sFitTrace2, &QState::entered, this, [=]{fit_trace(1);});
-    QObject::connect(sGetStimulus, &QState::entered, this, &Loopgain::get_stimulus);
-    QObject::connect(sGetTrace1, &QState::entered, this, &Loopgain::get_magnitude_data);
-    QObject::connect(sGetTrace2, &QState::entered, this, &Loopgain::get_phase_data);
-    QObject::connect(sPlotData, &QState::entered, this, &Loopgain::unpack_raw_data);
-
-    QObject::connect(sHold, &QState::entered, this, &Loopgain::hold_sweep);
-
-    QObject::connect(sStop, &QState::entered, this, &Loopgain::enable_ui_sweep);
-    QObject::connect(sStop, &QState::entered, smSingleSweep, &QStateMachine::stop);
-
-
-    QObject::connect(smSingleSweep, &QStateMachine::stopped, this, [=] {
-        // Cleanup
-        sStop->deleteLater();
-        sHold->deleteLater();
-        sPlotData->deleteLater();
-        sGetTrace2->deleteLater();
-        sGetTrace1->deleteLater();
-        sGetStimulus->deleteLater();
-        sFitTrace2->deleteLater();
-        sFitTrace1->deleteLater();
-        sPollHold->deleteLater();
-        sStartSweep->deleteLater();
-        sSetPhaseFormat->deleteLater();
-        sUpdateReceiver->deleteLater();
-        sUpdateStimulus->deleteLater();
-        smSingleSweep->deleteLater();
-    });
-
-    sUpdateStimulus->addTransition(this, &Loopgain::responseOK, sUpdateReceiver);
-    sUpdateStimulus->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sUpdateReceiver->addTransition(this, &Loopgain::responseOK, sSetPhaseFormat);
-    sUpdateReceiver->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sSetPhaseFormat->addTransition(this, &Loopgain::responseOK, sStartSweep);
-    sSetPhaseFormat->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sStartSweep->addTransition(this, &Loopgain::responseOK, sPollHold);
-    sStartSweep->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sPollHold->addTransition(this, &Loopgain::responseOK, sFitTrace1);
-    sPollHold->addTransition(this, &Loopgain::responseNOK, sPollHold);
-    sPollHold->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sFitTrace1->addTransition(this, &Loopgain::responseOK, sFitTrace2);
-    sFitTrace1->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sFitTrace2->addTransition(this, &Loopgain::responseOK, sGetStimulus);
-    sFitTrace2->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sGetStimulus->addTransition(this, &Loopgain::responseOK, sGetTrace1);
-    sGetStimulus->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sGetTrace1->addTransition(this, &Loopgain::responseOK, sGetTrace2);
-    sGetTrace1->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sGetTrace2->addTransition(this, &Loopgain::responseOK, sPlotData);
-    sGetTrace2->addTransition(ui->btnHold, &QPushButton::clicked, sHold);
-
-    sHold->addTransition(this, &Loopgain::responseOK, sStop);
-
-    sPlotData->addTransition(sPlotData, &QState::entered, sStop);
-
-    smSingleSweep->addState(sUpdateStimulus);
-    smSingleSweep->addState(sUpdateReceiver);
-    smSingleSweep->addState(sSetPhaseFormat);
-    smSingleSweep->addState(sStartSweep);
-    smSingleSweep->addState(sPollHold);
-    smSingleSweep->addState(sFitTrace1);
-    smSingleSweep->addState(sFitTrace2);
-    smSingleSweep->addState(sGetStimulus);
-    smSingleSweep->addState(sGetTrace1);
-    smSingleSweep->addState(sGetTrace2);
-    smSingleSweep->addState(sPlotData);
-    smSingleSweep->addState(sHold);
-    smSingleSweep->addState(sStop);
-
-    smSingleSweep->setInitialState(sUpdateStimulus);
-    smSingleSweep->start();
 
     disable_ui_sweep();
 }
@@ -500,4 +500,5 @@ void Loopgain::on_btnExport_clicked()
 {
 
 }
+
 

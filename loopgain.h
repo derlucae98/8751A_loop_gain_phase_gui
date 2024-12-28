@@ -9,6 +9,7 @@
 #include <QState>
 
 
+
 namespace Ui {
 class Loopgain;
 }
@@ -53,6 +54,7 @@ private:
     void init_plot();
     void plot_data();
     void poll_hold();
+    void init_sweep_statemachine();
 
 
 
@@ -87,6 +89,8 @@ private slots:
 signals:
     void responseOK(QPrivateSignal);
     void responseNOK(QPrivateSignal);
+    void continueSweep(QPrivateSignal);
+    void goIdle(QPrivateSignal);
 
 };
 
