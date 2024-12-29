@@ -461,7 +461,9 @@ void Loopgain::on_chart_customContextMenuRequested(const QPoint &pos)
 
         if (res != nullptr) {
             QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "plot", tr("PNG-Files (*.png)"));
-            chartView->grab().save(fileName + ".png");
+            if (!fileName.isEmpty()) {
+                chartView->grab().save(fileName + ".png");
+            }
         }
     }
 
