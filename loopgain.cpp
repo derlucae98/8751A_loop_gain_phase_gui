@@ -352,6 +352,7 @@ void Loopgain::init_sweep_statemachine()
     QObject::connect(sGetTrace2, &QState::entered, this, &Loopgain::get_phase_data);
     QObject::connect(sPlotData, &QState::entered, this, &Loopgain::unpack_raw_data);
     QObject::connect(sUpdateStimulus, &QState::entered, this, &Loopgain::ui_start_sweep);
+    QObject::connect(sStartSweep, &QState::entered, this, &Loopgain::ui_start_sweep);
 
     QObject::connect(sHold, &QState::entered, this, &Loopgain::hold_sweep);
 
@@ -404,7 +405,7 @@ void Loopgain::init_sweep_statemachine()
     sPlotData->addTransition(sPlotData, &QState::entered, sStop);
 
     sStop->addTransition(this, &Loopgain::goIdle, sIdle);
-    sStop->addTransition(this, &Loopgain::continueSweep, sUpdateStimulus);
+    sStop->addTransition(this, &Loopgain::continueSweep, sStartSweep);
 
 
     smSingleSweep->addState(sUpdateStimulus);
