@@ -36,9 +36,9 @@ void Loopgain::closeEvent(QCloseEvent *event)
     this->deleteLater();
 }
 
-void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 channel)
+void Loopgain::instrument_response(HP8751A::command_t cmd, QByteArray resp, qint8 channel)
 {
-    qDebug() << "CMD: " << cmd <<", Resp: " << resp << ", ch: " << channel;
+    //qDebug() << "CMD: " << cmd <<", Resp: " << resp << ", ch: " << channel;
     switch (cmd) {
         case HP8751A::CMD_INIT_TRANSFERFUNCTION:
             if (resp == "1") {
@@ -66,7 +66,8 @@ void Loopgain::instrument_response(HP8751A::command_t cmd, QString resp, qint8 c
 
         case HP8751A::CMD_FIT_TRACE:
             {
-                QStringList respSeparate = resp.split(";");
+                QString respStr = resp;
+                QStringList respSeparate = respStr.split(";");
                 if (channel == 0) {
                     magnitudeScale = respSeparate.at(0).toFloat();
                     magnitudeRef = respSeparate.at(1).toFloat();
@@ -167,35 +168,16 @@ void Loopgain::get_phase_data()
 
 void Loopgain::unpack_raw_data()
 {
-    QStringList stimulus;
-    stimulus = stimulus_raw.split(',');
+    trace_data.clear();
 
-    trace_data.resize(stimulus.size());
+    for (unsigned int i = 0; i < stimulus_raw.size() / sizeof(float); i++) {
 
-    QStringList magnitude;
-    magnitude = magnitude_raw.split(',');
-
-    QStringList phase;
-    phase = phase_raw.split(',');
-
-    //qDebug() << "Stimulus size: " << stimulus.size() << ", Trace size: " << trace.size();
-
-    bool ok;
-    for (int i = 0; i < stimulus.size(); i++) {
-        trace_data[i].frequency = stimulus.at(i).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "err parsing string for frequency at point " << i;
-        }
-        trace_data[i].magnitude = magnitude.at(2 * i).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "err parsing string for magnitude at point " << i;
-        }
-        trace_data[i].phase = phase.at(2 * i).toDouble(&ok);
-        if (!ok) {
-            qDebug() << "err parsing string for phase at point " << i;
-        }
-        qDebug() << "f: " << trace_data.at(i).frequency << ", Magnitude: " << trace_data.at(i).magnitude << ", Phase: " << trace_data.at(i).phase;
+        float frequency = *(reinterpret_cast<float*>(stimulus_raw.mid(4 * i, 4).data()));
+        float magnitude = *(reinterpret_cast<float*>(magnitude_raw.mid(8 * i, 4).data()));
+        float phase = *(reinterpret_cast<float*>(phase_raw.mid(8 * i, 4).data()));
+        trace_data.push_back({frequency, magnitude, phase});
     }
+
 
     enable_ui();
     plot_data();

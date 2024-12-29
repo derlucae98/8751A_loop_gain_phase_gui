@@ -83,7 +83,7 @@ public:
 private:
     PrologixGPIB *gpib = nullptr;
     quint16 gpibId;
-    void gpib_response(QString resp);
+    void gpib_response(QByteArray resp);
     QTimer *respTimer = nullptr;
     void resp_timeout();
     void send_command(QString cmdString); // Appends *OPC? to the command list
@@ -114,7 +114,7 @@ private:
     QVector<cmd_queue_t> cmdQueue;
 
 signals:
-    void instrument_response(command_t cmd, QString resp, qint8 channel); // Channel parameter contains 0 or 1 for a channel specific command, -1 otherwise
+    void instrument_response(command_t cmd, QByteArray resp, qint8 channel); // Channel parameter contains 0 or 1 for a channel specific command, -1 otherwise
     void response_timeout();
 
 };

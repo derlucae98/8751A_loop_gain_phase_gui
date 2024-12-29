@@ -30,7 +30,7 @@ private:
     quint16 gpibId;
     QHostAddress addr;
     quint16 port;
-    void gpib_response_slot(HP8751A::command_t cmd, QString resp);
+    void gpib_response_slot(HP8751A::command_t cmd, QByteArray resp);
     void gpib_state(QAbstractSocket::SocketState state);
     void gpib_disconected();
     void request_instrument();
@@ -41,7 +41,7 @@ private:
     Impedance *impedance = nullptr;
 
 signals:
-    void instrument_response(HP8751A::command_t cmd, QString resp);
+    void instrument_response(HP8751A::command_t cmd, QByteArray resp);
     void instrument_response_timeout();
 
 private slots:

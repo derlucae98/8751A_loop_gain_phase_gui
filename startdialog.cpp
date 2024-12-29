@@ -39,7 +39,7 @@ StartDialog::~StartDialog()
     delete ui;
 }
 
-void StartDialog::gpib_response_slot(HP8751A::command_t cmd, QString resp)
+void StartDialog::gpib_response_slot(HP8751A::command_t cmd, QByteArray resp)
 {
     if (cmd != HP8751A::CMD_IDENTIFY) {
         return;

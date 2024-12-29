@@ -22,7 +22,7 @@ signals:
     void connected();
     void disconnected();
     void stateChanged(QAbstractSocket::SocketState);
-    void response(QString);
+    void response(QByteArray);
 
 };
 

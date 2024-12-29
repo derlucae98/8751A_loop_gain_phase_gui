@@ -27,12 +27,12 @@ public:
 private:
     Ui::Loopgain *ui;
 
-    void instrument_response(HP8751A::command_t cmd, QString resp, qint8 channel);
+    void instrument_response(HP8751A::command_t cmd, QByteArray resp, qint8 channel);
 
     struct trace_data_t {
-        double frequency;
-        double magnitude;
-        double phase;
+        float frequency;
+        float magnitude;
+        float phase;
     };
 
     void init();
@@ -59,9 +59,9 @@ private:
 
 
 
-    QString stimulus_raw;
-    QString magnitude_raw;
-    QString phase_raw;
+    QByteArray stimulus_raw;
+    QByteArray magnitude_raw;
+    QByteArray phase_raw;
     QVector<trace_data_t> trace_data;
 
     QChart *chart = nullptr;

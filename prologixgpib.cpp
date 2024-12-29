@@ -65,7 +65,7 @@ void PrologixGPIB::read_socket()
     if (!socket->isOpen()) {
         return;
     }
-    QString resp;
+    QByteArray resp;
     while (socket->bytesAvailable()) {
         resp = socket->readAll();
     }

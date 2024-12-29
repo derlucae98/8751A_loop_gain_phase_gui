@@ -41,7 +41,7 @@ void HP8751A::init_transferfunction()
     commands.append("FMT LOGM;"); // Select format: log magnitude
     commands.append("CHAN2;"); // select channel 2
     commands.append("AR;"); // Select A/R function
-    commands.append("FMT PHAS"); // Select format: phase
+    commands.append("FMT PHAS;"); // Select format: phase
     enqueue_cmd(CMD_INIT_TRANSFERFUNCTION, commands, -1, CMD_TYPE_COMMAND);
 }
 
@@ -147,7 +147,7 @@ void HP8751A::fit_trace(quint8 channel)
 void HP8751A::get_stimulus()
 {
     QString commands;
-    commands.append("OUTPSTIM?");
+    commands.append("FORM5;OUTPSTIM?");
     enqueue_cmd(CMD_GET_STIMULUS, commands, -1, CMD_TYPE_QUERY);
 }
 
@@ -158,7 +158,7 @@ void HP8751A::get_channel_data(quint8 channel)
         channel = 1;
     }
     commands.append(QString("CHAN%1;").arg(channel + 1));
-    commands.append("OUTPFORM?");
+    commands.append("FORM5;OUTPFORM?");
     enqueue_cmd(CMD_GET_CHANNEL_DATA, commands, (qint8)channel, CMD_TYPE_QUERY);
 }
 
@@ -181,14 +181,42 @@ void HP8751A::set_phase_format(quint8 channel, bool unwrapPhase)
     enqueue_cmd(CMD_SET_PHASE_FORMAT, commands, (qint8)channel, CMD_TYPE_COMMAND);
 }
 
-void HP8751A::gpib_response(QString resp)
+void HP8751A::gpib_response(QByteArray resp)
 {
-    static QString respMerge;
-    respMerge.append(resp);
-    if (!resp.contains("\n")) {
-        return;
+    static quint32 numberOfBytes;
+    static quint32 bytesReceived;
+    static QByteArray respMerge;
+
+    if (cmdQueue.first().cmd == CMD_GET_CHANNEL_DATA ||
+        cmdQueue.first().cmd == CMD_GET_STIMULUS) {
+
+        bytesReceived += resp.size();
+
+        respMerge.append(resp);
+
+        // When receiving data in float mode, the number of following bytes is transmitted.
+        // Sequence starts with "#6";
+        if (resp.mid(0, 2) == "#6") {
+            QString numberOfBytesString = resp.mid(2, 6);
+            numberOfBytes = numberOfBytesString.toUInt();
+            bytesReceived -= 9; // Don't count "#6", 6 byte length and \n
+            respMerge.remove(0, 8); // Remove the first block which tells the number of bytes
+        }
+
+        if (bytesReceived != numberOfBytes) {
+            return;
+        }
+
+    } else {
+        respMerge = resp;
     }
-    respMerge.remove("\n");
+
+    bytesReceived = 0;
+    numberOfBytes = 0;
+    if (respMerge.back() == '\n') {
+        respMerge.chop(1);
+    }
+
     cmd_queue_t cmd = cmdQueue.takeFirst();
     cmdQueue.squeeze();
     emit instrument_response(cmd.cmd, respMerge, cmd.channel);
