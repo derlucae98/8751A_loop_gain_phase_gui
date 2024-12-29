@@ -197,8 +197,7 @@ void HP8751A::gpib_response(QByteArray resp)
         // When receiving data in float mode, the number of following bytes is transmitted.
         // Sequence starts with "#6";
         if (resp.mid(0, 2) == "#6") {
-            QString numberOfBytesString = resp.mid(2, 6);
-            numberOfBytes = numberOfBytesString.toUInt();
+            numberOfBytes = resp.mid(2, 6).toUInt();
             bytesReceived -= 9; // Don't count "#6", 6 byte length and \n
             respMerge.remove(0, 8); // Remove the first block which tells the number of bytes
         }
