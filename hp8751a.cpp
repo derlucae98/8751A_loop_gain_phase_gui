@@ -41,7 +41,7 @@ void HP8751A::init_transferfunction()
     commands.append("FMT LOGM;"); // Select format: log magnitude
     commands.append("CHAN2;"); // select channel 2
     commands.append("AR;"); // Select A/R function
-    commands.append("FMT PHAS;"); // Select format: phase
+    commands.append("FMT PHAS"); // Select format: phase
     enqueue_cmd(CMD_INIT_TRANSFERFUNCTION, commands, -1, CMD_TYPE_COMMAND);
 }
 
