@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>226</width>
+    <width>228</width>
     <height>230</height>
    </rect>
   </property>
@@ -31,7 +31,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Loop gain and phase</string>
+        <string>Transfer function</string>
        </property>
       </widget>
      </item>

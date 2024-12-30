@@ -27,8 +27,7 @@ StartDialog::StartDialog(QWidget *parent)
     read_settings();
 
     hp = new HP8751A(gpib, gpibId, this);
-    QObject::connect(hp, &HP8751A::instrument_response, this, &StartDialog::instrument_response);
-    QObject::connect(hp, &HP8751A::instrument_response, this, &StartDialog::gpib_response_slot);
+    QObject::connect(hp, &HP8751A::instrument_identification, this, &StartDialog::instrument_identification);
     QObject::connect(hp, &HP8751A::response_timeout, this, &StartDialog::instrument_response_timeout);
 }
 
@@ -39,13 +38,9 @@ StartDialog::~StartDialog()
     delete ui;
 }
 
-void StartDialog::gpib_response_slot(HP8751A::command_t cmd, QByteArray resp)
+void StartDialog::instrument_identification(QString idn)
 {
-    if (cmd != HP8751A::CMD_IDENTIFY) {
-        return;
-    }
-
-    if (resp.contains("8751A")) {
+    if (idn.contains("8751A")) {
         ui->status->setText("Instrument found!");
         ui->btnRetry->setEnabled(false);
         ui->btnLoopgain->setEnabled(true);

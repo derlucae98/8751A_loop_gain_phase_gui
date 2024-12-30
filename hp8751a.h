@@ -5,28 +5,14 @@
 #include <prologixgpib.h>
 #include <QTimer>
 #include <QVector>
+#include <QStateMachine>
+#include <QState>
 
 class HP8751A : public QObject
 {
     Q_OBJECT
 public:
     explicit HP8751A(PrologixGPIB *gpib, quint16 gpibId, QObject *parent = nullptr);
-
-    enum command_t {
-        __CMD_NONE,
-        CMD_IDENTIFY,
-        CMD_INIT_TRANSFERFUNCTION,
-        CMD_INIT_IMPEDANCE,
-        CMD_SET_STIMULUS,
-        CMD_SET_RECEIVER,
-        CMD_POLL_HOLD,
-        CMD_START_SWEEP,
-        CMD_CANCEL_SWEEP,
-        CMD_FIT_TRACE,
-        CMD_GET_STIMULUS,
-        CMD_GET_CHANNEL_DATA,
-        CMD_SET_PHASE_FORMAT
-    };
 
     enum ifbw_t {
         IFBW_2HZ,
@@ -37,48 +23,49 @@ public:
         IFBW_AUTO
     };
 
+    struct instrument_parameters_t {
+        quint32 fStart; // Start frequency
+        quint32 fStop; // Stop frequency
+        quint16 points; // Number of points
+        qint16 power; // Source power
+        bool clearPowerTrip; // Clear power trip
+        bool attenR; // Attenuater input R; true = 20 dB, false = 0 dB
+        bool attenA; // Attenuater input A; true = 20 dB, false = 0 dB
+        HP8751A::ifbw_t ifbw; // Receiver bandwidth
+        bool unwrapPhase; // Phase is always channel 2
+        bool avgEn; // Enable averaging
+        quint16 averFact; // Averaging factor
+    };
+
+    struct instrument_data_t {
+        QVector<float> stimulus;
+        QVector<float> channel1;
+        QVector<float> channel2;
+        float channel1Scale;
+        float channel1Refpos;
+        float channel2Scale;
+        float channel2Refpos;
+    };
+
     // Identify the HP 8751A on the bus
     void identify();
 
-    // Init instrument for loopgain measurement
-    void init_transferfunction();
+    // Init basic measurement functions
+    void init_function();
 
-    // Init instrument for impedance measurement
-    void init_impedance();
+    void set_instrument_parameters(instrument_parameters_t param);
 
-    // Set stimulus parameter
-    void set_stimulus(quint32 fStart, // Start frequency
-                      quint32 fStop, // Stop frequency
-                      quint16 points, // Number of points
-                      qint16 power, // Source power
-                      bool clearPowerTrip = true); // Clear power trip
-
-    // Set receiver parameter
-    void set_receiver(bool attenR, // Attenuater input R; true = 20 dB, false = 0 dB
-                      bool attenA, // Attenuater input A; true = 20 dB, false = 0 dB
-                      HP8751A::ifbw_t ifbw); // Receiver bandwidth
-
-    // Poll sweep status
-    void poll_hold();
-
-    // Start sweep
-    void start_sweep(bool avgEn, // enable averaging
-                     quint16 averFact); // averaging factor
+    // Start single sweep
+    void request_sweep();
 
     // Cancel current sweep
-    void cancel_sweep();
+    void request_cancel();
 
-    // Auto scale trace of selected channel, returns scale and reference value
-    void fit_trace(quint8 channel);
+    // Request if instrument is currently sweeping
+    bool sweep_done();
 
-    // Get stimulus frequencies from instrument
-    void get_stimulus();
-
-    // Get channel data of selected channel from instrument
-    void get_channel_data(quint8 channel);
-
-    // Set phase format of selected channel
-    void set_phase_format(quint8 channel, bool unwrapPhase);
+    // Get stimulus and channel data from local buffer
+    void get_data(HP8751A::instrument_data_t &data);
 
 private:
     PrologixGPIB *gpib = nullptr;
@@ -92,11 +79,40 @@ private:
     QTimer *sendCmdTimer = nullptr;
     void send_timer_timeout();
 
+    void init_statemachine_sweep();
 
+    void start_sweep();
+    void cancel_sweep();
+
+    void poll_hold();
+
+    void fit_trace();
+    void get_stimulus();
+    void get_channel_data(quint8 channel);
+
+    instrument_parameters_t params;
+    instrument_data_t data;
+
+    void unpack_stimulus(const QByteArray &resp);
+    void unpack_channel(const QByteArray &resp, quint8 channel);
+
+    bool sweepDone;
 
     enum cmd_type_t {
         CMD_TYPE_COMMAND,
         CMD_TYPE_QUERY
+    };
+
+    enum command_t {
+        CMD_IDENTIFY,
+        CMD_INIT_FUNCTION,
+        CMD_SET_PARAMETERS,
+        CMD_START_SWEEP,
+        CMD_CANCEL_SWEEP,
+        CMD_POLL_HOLD,
+        CMD_FIT_TRACE,
+        CMD_GET_STIMULUS,
+        CMD_GET_DATA
     };
 
     struct cmd_queue_t {
@@ -109,13 +125,25 @@ private:
     void enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type);
     bool nextCmd;
 
-
+    void instrument_response(command_t cmd, QByteArray resp, qint8 channel); // Channel parameter contains 0 or 1 for a channel specific command, -1 otherwise
 
     QVector<cmd_queue_t> cmdQueue;
 
 signals:
-    void instrument_response(command_t cmd, QByteArray resp, qint8 channel); // Channel parameter contains 0 or 1 for a channel specific command, -1 otherwise
+    // Public signals
+    void instrument_identification(QString);
+    void instrument_initialized();
+    void set_parameters_finished();
+    void retrieving_data();
+    void new_data(HP8751A::instrument_data_t);
+    void sweep_cancelled();
     void response_timeout();
+
+    // Private signals
+    void responseOK(QPrivateSignal);
+    void responseNOK(QPrivateSignal);
+    void sig_start_sweep(QPrivateSignal);
+    void sig_cancel_sweep(QPrivateSignal);
 
 };
 
