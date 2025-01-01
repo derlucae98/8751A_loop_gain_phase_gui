@@ -37,7 +37,7 @@ void Loopgain::init()
     sweepRequested = false;
     disable_ui();
     ui->statusbar->showMessage("Initializing instrument...");
-    hp->init_function();
+    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::PORT_AR, HP8751A::CONV_OFF);
     init_plot();
 }
 
@@ -64,7 +64,7 @@ void Loopgain::init_statemachine_sweep()
 
     QObject::connect(sIdle, &QState::entered, this, &Loopgain::ui_stop_sweep);
     sIdle->addTransition(ui->btnSingle, &QPushButton::clicked, sUpdateParameters);
-    sIdle->addTransition(ui->btnContinous, &QPushButton::clicked, sUpdateParameters);
+    sIdle->addTransition(ui->btnContinuous, &QPushButton::clicked, sUpdateParameters);
 
     QObject::connect(sUpdateParameters, &QState::entered, this, &Loopgain::ui_start_sweep);
     QObject::connect(sUpdateParameters, &QState::entered, this, &Loopgain::update_parameters);
@@ -89,7 +89,7 @@ void Loopgain::init_statemachine_sweep()
 
     QObject::connect(sPlotData, &QState::entered, this, &Loopgain::plot_data);
     QObject::connect(sPlotData, &QState::entered, this, [=] {
-        if (ui->btnContinous->isChecked()) {
+        if (ui->btnContinuous->isChecked()) {
             emit continueSweep(QPrivateSignal());
         } else {
             emit goIdle(QPrivateSignal());
@@ -267,9 +267,9 @@ void Loopgain::update_parameters()
 void Loopgain::ui_start_sweep()
 {
     ui->statusbar->showMessage("Updating parameters...");
-    if (!ui->btnContinous->isChecked()) {
+    if (!ui->btnContinuous->isChecked()) {
         // Single sweep mode selected
-        ui->btnContinous->setEnabled(false);
+        ui->btnContinuous->setEnabled(false);
     }
     ui->btnSingle->setEnabled(false);
     ui->btnHold->setEnabled(true);
@@ -292,8 +292,8 @@ void Loopgain::ui_stop_sweep()
 {
     ui->statusbar->showMessage("Ready.");
     ui->btnSingle->setEnabled(true);
-    ui->btnContinous->setEnabled(true);
-    ui->btnContinous->setChecked(false);
+    ui->btnContinuous->setEnabled(true);
+    ui->btnContinuous->setChecked(false);
     ui->btnExport->setEnabled(true);
     ui->btnHold->setEnabled(false);
     ui->aAutoscale->setEnabled(true);

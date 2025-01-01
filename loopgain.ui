@@ -30,7 +30,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -56,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnContinous">
+         <widget class="QPushButton" name="btnContinuous">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -66,7 +65,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -74,7 +72,7 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Continous</string>
+           <string>Continuous sweep</string>
           </property>
           <property name="text">
            <string/>
@@ -105,7 +103,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -113,7 +110,7 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Single</string>
+           <string>Single sweep</string>
           </property>
           <property name="text">
            <string/>
@@ -144,7 +141,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -152,7 +148,7 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Hold</string>
+           <string>Cancel sweep</string>
           </property>
           <property name="text">
            <string/>
@@ -919,7 +915,7 @@
      <x>0</x>
      <y>0</y>
      <width>1390</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

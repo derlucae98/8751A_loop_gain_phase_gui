@@ -23,7 +23,7 @@ void HP8751A::identify()
     enqueue_cmd(CMD_IDENTIFY, "*IDN?", -1, CMD_TYPE_QUERY);
 }
 
-void HP8751A::init_function()
+void HP8751A::init_function(input_port_t portCh1, conversion_t convCh1, input_port_t portCh2, conversion_t convCh2)
 {
     QString commands;
     commands.append("LOGFREQ;"); // log sweep
@@ -31,10 +31,12 @@ void HP8751A::init_function()
     commands.append("SPLDON;"); // activate split display
     commands.append("HOLD;"); // Stop sweep
     commands.append("CHAN1;"); // select channel 1
-    commands.append("AR;"); // Select A/R function
+    commands.append(port_to_string(portCh1) + ";"); // Select meas function
+    commands.append(conversion_to_string(convCh1) + ";"); // Select conversion
     commands.append("FMT LOGM;"); // Select format: log magnitude
     commands.append("CHAN2;"); // select channel 2
-    commands.append("AR"); // Select A/R function
+    commands.append(port_to_string(portCh2) + ";"); // Select meas function
+    commands.append(conversion_to_string(convCh2)); // Select conversion
 
     enqueue_cmd(CMD_INIT_FUNCTION, commands, -1, CMD_TYPE_COMMAND);
 }
@@ -60,26 +62,7 @@ void HP8751A::set_instrument_parameters(instrument_parameters_t param)
     } else {
         commands.append("ATTIA0DB;");
     }
-    switch (param.ifbw) {
-        case IFBW_2HZ:
-            commands.append(QString("IFBW 2;"));
-            break;
-        case IFBW_20HZ:
-            commands.append(QString("IFBW 20;"));
-            break;
-        case IFBW_200HZ:
-            commands.append(QString("IFBW 200;"));
-            break;
-        case IFBW_1KHZ:
-            commands.append(QString("IFBW 1000;"));
-            break;
-        case IFBW_4KHZ:
-            commands.append(QString("IFBW 4000;"));
-            break;
-        case IFBW_AUTO:
-            commands.append(QString("IFBWAUTO;"));
-            break;
-    }
+    commands.append(ifbw_to_string(params.ifbw) + ";");
 
     commands.append("CHAN2;");
 
@@ -208,6 +191,66 @@ void HP8751A::unpack_channel(const QByteArray &resp, quint8 channel)
         } else {
             data.channel2.push_back(channelData);
         }
+    }
+}
+
+QString HP8751A::port_to_string(input_port_t port)
+{
+    switch (port) {
+    case PORT_AR:
+        return "AR";
+    case PORT_BR:
+        return "BR";
+    case PORT_AB:
+        return "AB";
+    case PORT_A:
+        return "MEASA";
+    case PORT_B:
+        return "MEASB";
+    case PORT_R:
+        return "MEASR";
+    case PORT_S11_AR:
+        return "S11";
+    case PORT_S21_BR:
+        return "S21";
+    case PORT_S12_AR:
+        return "S12";
+    case PORT_S22_BR:
+        return "S22";
+    }
+}
+
+QString HP8751A::conversion_to_string(conversion_t conv)
+{
+    switch (conv) {
+    case CONV_OFF:
+        return "CONVOFF";
+    case CONV_Z_REFL:
+        return "CONVZREF";
+    case CONV_Z_TRANS:
+        return "CONVZTRA";
+    case CONV_Y_REFL:
+        return "CONVYREF";
+    case CONV_Y_TRANS:
+        return "CONVYTRA";
+    }
+}
+
+QString HP8751A::ifbw_to_string(ifbw_t ifbw)
+{
+    switch (ifbw) {
+    case IFBW_2HZ:
+        return "IFBW 2";
+    case IFBW_20HZ:
+        return "IFBW 20";
+    case IFBW_200HZ:
+        return "IFBW 200";
+    case IFBW_1KHZ:
+        return "IFBW 1000";
+    case IFBW_4KHZ:
+        return "IFBW 4000";
+    case IFBW_AUTO:
+        return "IFBWAUTO";
     }
 }
 

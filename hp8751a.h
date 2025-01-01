@@ -23,6 +23,27 @@ public:
         IFBW_AUTO
     };
 
+    enum input_port_t {
+        PORT_AR,
+        PORT_BR,
+        PORT_AB,
+        PORT_A,
+        PORT_B,
+        PORT_R,
+        PORT_S11_AR,
+        PORT_S21_BR,
+        PORT_S12_AR,
+        PORT_S22_BR
+    };
+
+    enum conversion_t {
+        CONV_OFF,
+        CONV_Z_REFL,
+        CONV_Z_TRANS,
+        CONV_Y_REFL,
+        CONV_Y_TRANS
+    };
+
     struct instrument_parameters_t {
         quint32 fStart; // Start frequency
         quint32 fStop; // Stop frequency
@@ -51,7 +72,7 @@ public:
     void identify();
 
     // Init basic measurement functions
-    void init_function();
+    void init_function(input_port_t portCh1, conversion_t convCh1, input_port_t portCh2, conversion_t convCh2);
 
     void set_instrument_parameters(instrument_parameters_t param);
 
@@ -121,6 +142,10 @@ private:
         qint8 channel;
         cmd_type_t type;
     };
+
+    QString port_to_string(input_port_t port);
+    QString conversion_to_string(conversion_t conv);
+    QString ifbw_to_string(ifbw_t ifbw);
 
     void enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type);
     bool nextCmd;

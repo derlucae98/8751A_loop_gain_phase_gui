@@ -20,7 +20,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="btnCalibrate">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -34,7 +34,10 @@
            </size>
           </property>
           <property name="toolTip">
-           <string>Calibrate</string>
+           <string>Calibrate measurement</string>
+          </property>
+          <property name="whatsThis">
+           <string/>
           </property>
           <property name="text">
            <string/>
@@ -52,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_2">
+         <widget class="QPushButton" name="btnExport">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -62,7 +65,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -71,6 +73,9 @@
           </property>
           <property name="toolTip">
            <string>Export data</string>
+          </property>
+          <property name="whatsThis">
+           <string/>
           </property>
           <property name="text">
            <string/>
@@ -88,7 +93,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_3">
+         <widget class="QPushButton" name="btnContinuous">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -98,7 +103,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -106,43 +110,10 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Load trace</string>
+           <string>Continuous sweep</string>
           </property>
-          <property name="text">
+          <property name="whatsThis">
            <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="res.qrc">
-            <normaloff>:/img/res/update.png</normaloff>:/img/res/update.png</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_4">
-          <property name="minimumSize">
-           <size>
-            <width>50</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>21</pointsize>
-            <weight>50</weight>
-            <italic>false</italic>
-            <bold>false</bold>
-            <underline>false</underline>
-            <strikeout>false</strikeout>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>Continous</string>
           </property>
           <property name="text">
            <string/>
@@ -163,7 +134,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_5">
+         <widget class="QPushButton" name="btnSingle">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -173,7 +144,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -181,7 +151,10 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Single</string>
+           <string>Single sweep</string>
+          </property>
+          <property name="whatsThis">
+           <string/>
           </property>
           <property name="text">
            <string/>
@@ -202,7 +175,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_6">
+         <widget class="QPushButton" name="btnHold">
           <property name="minimumSize">
            <size>
             <width>50</width>
@@ -212,7 +185,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -220,7 +192,10 @@
            </font>
           </property>
           <property name="toolTip">
-           <string>Hold</string>
+           <string>Cancel sweep</string>
+          </property>
+          <property name="whatsThis">
+           <string/>
           </property>
           <property name="text">
            <string/>
@@ -265,7 +240,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox">
+             <widget class="QSpinBox" name="topRef">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -311,7 +286,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_2">
+             <widget class="QSpinBox" name="topScale">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -345,7 +320,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QComboBox" name="view_u_imp">
+             <widget class="QComboBox" name="view_top">
               <item>
                <property name="text">
                 <string>|Z|</string>
@@ -371,7 +346,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="autoscale_top">
             <property name="text">
              <string>Auto scale</string>
             </property>
@@ -404,7 +379,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_3">
+             <widget class="QSpinBox" name="botRef">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -450,7 +425,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="spinBox_4">
+             <widget class="QSpinBox" name="botScale">
               <property name="minimumSize">
                <size>
                 <width>50</width>
@@ -484,7 +459,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QComboBox" name="view_l_imp">
+             <widget class="QComboBox" name="view_bot">
               <item>
                <property name="text">
                 <string>|Z|</string>
@@ -510,7 +485,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="autoscale_bot">
             <property name="text">
              <string>Auto scale</string>
             </property>
@@ -582,7 +557,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="startFreq_imp">
+          <widget class="QLineEdit" name="startFreq">
            <property name="text">
             <string>1000</string>
            </property>
@@ -622,7 +597,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="stopFreq_imp">
+          <widget class="QLineEdit" name="stopFreq">
            <property name="text">
             <string>20000000</string>
            </property>
@@ -662,7 +637,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="numberOfPoints_imp">
+          <widget class="QComboBox" name="numberOfPoints">
            <property name="currentIndex">
             <number>2</number>
            </property>
@@ -717,7 +692,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QDoubleSpinBox" name="outputPower_imp">
+          <widget class="QDoubleSpinBox" name="outputPower">
            <property name="decimals">
             <number>0</number>
            </property>
@@ -756,7 +731,7 @@
     <item row="1" column="1" rowspan="3">
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="QFrame" name="chart_imp_u">
+       <widget class="QFrame" name="chart_top">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -781,7 +756,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QFrame" name="chart_imp_l">
+       <widget class="QFrame" name="chart_bot">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -847,7 +822,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="attenR_imp">
+          <widget class="QComboBox" name="attenR">
            <property name="currentIndex">
             <number>1</number>
            </property>
@@ -887,7 +862,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="attenA_imp">
+          <widget class="QComboBox" name="attenA">
            <property name="currentIndex">
             <number>1</number>
            </property>
@@ -927,7 +902,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="ifBw_imp">
+          <widget class="QComboBox" name="ifBw">
            <property name="minimumSize">
             <size>
              <width>97</width>
@@ -1001,7 +976,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
