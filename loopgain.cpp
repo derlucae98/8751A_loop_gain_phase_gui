@@ -34,7 +34,6 @@ void Loopgain::closeEvent(QCloseEvent *event)
 
 void Loopgain::init()
 {
-    sweepRequested = false;
     disable_ui();
     ui->statusbar->showMessage("Initializing instrument...");
     hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::PORT_AR, HP8751A::CONV_OFF);

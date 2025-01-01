@@ -64,8 +64,6 @@ private:
     float phaseScale;
     float phaseRef;
 
-    bool sweepRequested;
-
 public slots:
     void instrument_initialized();
     void set_parameters_finished();
