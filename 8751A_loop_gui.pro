@@ -13,9 +13,6 @@ SOURCES += \
     impedance.cpp \
     loopgain.cpp \
     main.cpp \
-    mainwindow.cpp \
-    mainwindow_impedance.cpp \
-    mainwindow_loopgain.cpp \
     networksettingsdialog.cpp \
     prologixgpib.cpp \
     startdialog.cpp
@@ -24,7 +21,6 @@ HEADERS += \
     hp8751a.h \
     impedance.h \
     loopgain.h \
-    mainwindow.h \
     networksettingsdialog.h \
     prologixgpib.h \
     startdialog.h
@@ -32,7 +28,6 @@ HEADERS += \
 FORMS += \
     impedance.ui \
     loopgain.ui \
-    mainwindow.ui \
     networksettingsdialog.ui \
     startdialog.ui
 
