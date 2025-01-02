@@ -6,6 +6,7 @@
 #include <hp8751a.h>
 #include <QMessageBox>
 #include <QtCharts>
+#include <complex.h>
 
 namespace Ui {
 class Impedance;
@@ -44,6 +45,17 @@ private:
     float topRefVal;
     float botScale;
     float botRefVal;
+
+    QList<QPointF> magnitude;
+    QList<QPointF> impedance;
+    QList<QPointF> phase;
+    QList<QPointF> inductance;
+    QList<QPointF> capacitance;
+    QList<QPointF> resistance;
+
+    std::tuple<float, float> find_min_max(QList<QPointF> &points);
+    float round_one_decimal(float value);
+
 
 public slots:
     void instrument_initialized();

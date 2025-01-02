@@ -36,7 +36,7 @@ void Impedance::init()
 {
     disable_ui();
     ui->statusbar->showMessage("Initializing instrument...");
-    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_Z_REFL, HP8751A::FMT_LINM, HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::FMT_PHAS);
+    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_Z_REFL, HP8751A::FMT_LOGM, HP8751A::PORT_AR, HP8751A::CONV_Z_REFL, HP8751A::FMT_PHAS);
     init_plot();
 }
 
@@ -236,51 +236,110 @@ void Impedance::plot_data()
 {
     // Prepare data for plot
 
-    QList<QPointF> topPoints;
-    QList<QPointF> botPoints;
+    QList<QPointF> pointsTop;
 
-    HP8751A::instrument_data_t data;
-    hp->get_data(data);
+    pointsTop.clear();
 
-    for (int i = 0; i < data.stimulus.length(); i++) {
-        topPoints.push_back({data.stimulus.at(i), data.channel1.at(i)});
-        botPoints.push_back({data.stimulus.at(i), data.channel2.at(i)});
+    switch (ui->view_top->currentIndex()) {
+    case 0:
+        pointsTop = magnitude;
+        break;
+    case 1:
+        pointsTop = impedance;
+        break;
+    case 2:
+        pointsTop = inductance;
+        break;
+    case 3:
+        pointsTop =capacitance;
+        break;
+    case 4:
+        pointsTop =resistance;
+        break;
+    case 5:
+        pointsTop = phase;
+        break;
     }
 
     top->clear();
-    top->append(topPoints);
+    top->append(pointsTop);
     top->setName(ui->view_top->currentText());
 
-    bot->clear();
-    bot->append(botPoints);
-    bot->setName(ui->view_bot->currentText());
+    QList<QPointF> pointsBot;
+    pointsBot.clear();
 
-    axisXTop->setMin(data.stimulus.first());
-    axisXTop->setMax(data.stimulus.last());
 
-    axisXBot->setMin(data.stimulus.first());
-    axisXBot->setMax(data.stimulus.last());
-
-    double topScale;
-    double topRefVal;
-    if (ui->autoscale_top->isChecked()) {
-        ui->topScale->setValue(this->topScale);
-        ui->topRef->setValue(this->topRefVal);
-        topScale = this->topScale;
-        topRefVal = this->topRefVal;
-    } else {
-        topScale = ui->topScale->value();
-        topRefVal = ui->topRef->value();
+    switch (ui->view_bot->currentIndex()) {
+    case 0:
+        pointsBot = magnitude;
+        break;
+    case 1:
+        pointsBot = impedance;
+        break;
+    case 2:
+        pointsBot = inductance;
+        break;
+    case 3:
+        pointsBot = capacitance;
+        break;
+    case 4:
+        pointsBot = resistance;
+        break;
+    case 5:
+        pointsBot = phase;
+        break;
     }
 
-    axisYTop->setTitleText("Magnitude / dB");
-    axisYTop->setLabelFormat("%i");
-    axisYTop->setMin(topRefVal - 5 * topScale);
-    axisYTop->setMax(topRefVal + 5 * topScale);
-    axisYTop->setTickType(QValueAxis::TicksDynamic);
-    axisYTop->setTickAnchor(topRefVal);
-    axisYTop->setTickInterval((axisYTop->max() - axisYTop->min()) / 10);
-    axisYTop->setLabelFormat("%.2f");
+    bot->clear();
+    bot->append(pointsBot);
+    bot->setName(ui->view_bot->currentText());
+
+    axisXTop->setMin(pointsTop.first().x());
+    axisXTop->setMax(pointsTop.last().x());
+
+    axisXBot->setMin(pointsBot.first().x());
+    axisXBot->setMax(pointsBot.last().x());
+
+
+    // Scale y-axis
+
+    auto [minPoint, maxPoint] = find_min_max(pointsTop);
+
+    float referencePoint = (minPoint + maxPoint) / 2.0;
+    double range = maxPoint - minPoint;
+    double step = range / 10.0;
+    //step = round_one_decimal(step);
+
+    double axisMin = referencePoint - (step * 5);
+    double axisMax = referencePoint + (step * 5);
+
+    // axisMin = round_one_decimal(axisMin);
+    // axisMax = round_one_decimal(axisMax);
+
+    axisYTop->setRange(axisMin, axisMax);
+    axisYTop->setTickCount(11);
+    axisYTop->setLabelFormat("%f");
+
+    // double topScale;
+    // double topRefVal;
+    // if (ui->autoscale_top->isChecked()) {
+    //     ui->topScale->setValue(this->topScale);
+    //     ui->topRef->setValue(this->topRefVal);
+    //     topScale = this->topScale;
+    //     topRefVal = this->topRefVal;
+    // } else {
+    //     topScale = ui->topScale->value();
+    //     topRefVal = ui->topRef->value();
+    // }
+
+    // axisYTop->setTitleText("Magnitude / dB");
+    // axisYTop->setLabelFormat("%i");
+    // axisYTop->setMin(topRefVal - 5 * topScale);
+    // axisYTop->setMax(topRefVal + 5 * topScale);
+    // axisYTop->setTickType(QValueAxis::TicksDynamic);
+    // axisYTop->setTickAnchor(topRefVal);
+    // axisYTop->setTickInterval((axisYTop->max() - axisYTop->min()) / 10);
+
 
     double botScale;
     double botRefVal;
@@ -321,6 +380,24 @@ void Impedance::update_parameters()
     hp->set_instrument_parameters(param);
 }
 
+std::tuple<float, float> Impedance::find_min_max(QList<QPointF> &points)
+{
+    float minY = std::numeric_limits<float>::max();
+    float maxY = std::numeric_limits<float>::lowest();
+
+    for (const QPointF &point : points) {
+        if (point.y() < minY) minY = point.y();
+        if (point.y() > maxY) maxY = point.y();
+    }
+
+    return {minY, maxY};
+}
+
+float Impedance::round_one_decimal(float value)
+{
+    return std::round(value * 10.0) / 10.0;
+}
+
 void Impedance::instrument_initialized()
 {
     update_parameters();
@@ -342,6 +419,26 @@ void Impedance::new_data(HP8751A::instrument_data_t data)
     topRefVal = data.channel1RefVal;
     botScale = data.channel2Scale;
     botRefVal = data.channel2RefVal;
+
+    magnitude.clear();
+    impedance.clear();
+    phase.clear();
+    inductance.clear();
+    capacitance.clear();
+    resistance.clear();
+
+    for (int i = 0; i < data.stimulus.length(); i++) {
+        magnitude.push_back({data.stimulus.at(i), data.channel1.at(i)});
+        float lin = std::pow(10, (data.channel1.at(i) / 20));
+        impedance.push_back({data.stimulus.at(i), lin});
+        phase.push_back({data.stimulus.at(i), data.channel2.at(i)});
+        inductance.push_back({data.stimulus.at(i), lin / (2 * M_PI * data.stimulus.at(i))});
+        capacitance.push_back({data.stimulus.at(i), 1 / (lin * (2 * M_PI * data.stimulus.at(i)))});
+        std::complex<float> cmplx(lin * std::exp(data.channel2.at(i)));
+        resistance.push_back({data.stimulus.at(i), cmplx.real()});
+    }
+
+    qDebug() << capacitance;
 }
 
 void Impedance::response_timeout()
@@ -410,26 +507,31 @@ void Impedance::on_view_top_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
+        ui->unitTopRef->setText("dB");
+        ui->unitTopScale->setText("dB");
+        break;
+    case 1:
         ui->unitTopRef->setText("Ω");
         ui->unitTopScale->setText("Ω");
         break;
-    case 1:
+    case 2:
         ui->unitTopRef->setText("H");
         ui->unitTopScale->setText("H");
         break;
-    case 2:
+    case 3:
         ui->unitTopRef->setText("F");
         ui->unitTopScale->setText("F");
         break;
-    case 3:
+    case 4:
         ui->unitTopRef->setText("Ω");
         ui->unitTopScale->setText("Ω");
         break;
-    case 4:
+    case 5:
         ui->unitTopRef->setText("°");
         ui->unitTopScale->setText("°");
         break;
     }
+    plot_data();
 }
 
 
@@ -437,25 +539,30 @@ void Impedance::on_view_bot_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
+        ui->unitBotRef->setText("dB");
+        ui->unitBotScale->setText("dB");
+        break;
+    case 1:
         ui->unitBotRef->setText("Ω");
         ui->unitBotScale->setText("Ω");
         break;
-    case 1:
+    case 2:
         ui->unitBotRef->setText("H");
         ui->unitBotScale->setText("H");
         break;
-    case 2:
+    case 3:
         ui->unitBotRef->setText("F");
         ui->unitBotScale->setText("F");
         break;
-    case 3:
+    case 4:
         ui->unitBotRef->setText("Ω");
         ui->unitBotScale->setText("Ω");
         break;
-    case 4:
+    case 5:
         ui->unitBotRef->setText("°");
         ui->unitBotScale->setText("°");
         break;
     }
+    plot_data();
 }
 

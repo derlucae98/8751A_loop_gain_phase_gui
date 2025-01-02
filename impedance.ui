@@ -350,6 +350,11 @@
              <widget class="QComboBox" name="view_top">
               <item>
                <property name="text">
+                <string>Mag</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
                 <string>|Z|</string>
                </property>
               </item>
@@ -517,8 +522,13 @@
             <item>
              <widget class="QComboBox" name="view_bot">
               <property name="currentIndex">
-               <number>4</number>
+               <number>5</number>
               </property>
+              <item>
+               <property name="text">
+                <string>Mag</string>
+               </property>
+              </item>
               <item>
                <property name="text">
                 <string>|Z|</string>
