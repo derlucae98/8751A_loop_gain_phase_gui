@@ -65,6 +65,7 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
+            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -103,6 +104,7 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
+            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -144,6 +146,7 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
+            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -185,6 +188,7 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
+            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -518,7 +522,7 @@
      </layout>
     </item>
     <item row="1" column="0">
-     <widget class="QGroupBox" name="grpSource_2">
+     <widget class="QGroupBox" name="grpSource">
       <property name="minimumSize">
        <size>
         <width>251</width>
@@ -783,11 +787,11 @@
      </layout>
     </item>
     <item row="2" column="0">
-     <widget class="QGroupBox" name="grpReceive_2">
+     <widget class="QGroupBox" name="grpReceive">
       <property name="minimumSize">
        <size>
         <width>251</width>
-        <height>131</height>
+        <height>160</height>
        </size>
       </property>
       <property name="maximumSize">
@@ -823,46 +827,6 @@
          </item>
          <item>
           <widget class="QComboBox" name="attenR">
-           <property name="currentIndex">
-            <number>1</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>0 dB</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>20 dB</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_9">
-         <item>
-          <widget class="QLabel" name="label_19">
-           <property name="minimumSize">
-            <size>
-             <width>120</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>120</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Attenuator A</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="attenA">
            <property name="currentIndex">
             <number>1</number>
            </property>
@@ -952,6 +916,53 @@
          </item>
         </layout>
        </item>
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="QLabel" name="label_19">
+           <property name="minimumSize">
+            <size>
+             <width>120</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>120</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Attenuator A</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="attenA">
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>0 dB</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>20 dB</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="unwrapPhase">
+         <property name="text">
+          <string>Unwrap phase</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -976,7 +987,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

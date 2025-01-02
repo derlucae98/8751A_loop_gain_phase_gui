@@ -113,12 +113,6 @@ void Loopgain::init_statemachine_sweep()
     smSweep->start();
 }
 
-void Loopgain::init_ui()
-{
-    ui->btnExport->setEnabled(false);
-    ui->btnHold->setEnabled(false);
-}
-
 void Loopgain::start_sweep()
 {
     hp->request_sweep();

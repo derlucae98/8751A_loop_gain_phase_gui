@@ -35,7 +35,6 @@ private:
 
     void init();
     void init_statemachine_sweep();
-    void init_ui();
 
     void start_sweep();
 
