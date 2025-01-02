@@ -65,7 +65,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -104,7 +103,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -146,7 +144,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -188,7 +185,6 @@
           <property name="font">
            <font>
             <pointsize>21</pointsize>
-            <weight>50</weight>
             <italic>false</italic>
             <bold>false</bold>
             <underline>false</underline>
@@ -244,10 +240,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="topRef">
+             <widget class="QDoubleSpinBox" name="topRef">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -258,17 +254,29 @@
                </size>
               </property>
               <property name="minimum">
-               <number>-100</number>
+               <double>-3600.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>100</number>
+               <double>3600.000000000000000</double>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_12">
+             <widget class="QLabel" name="unitTopRef">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>dB</string>
+               <string>Ω</string>
               </property>
              </widget>
             </item>
@@ -290,10 +298,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="topScale">
+             <widget class="QDoubleSpinBox" name="topScale">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -303,15 +311,30 @@
                 <height>16777215</height>
                </size>
               </property>
+              <property name="minimum">
+               <double>-3600.000000000000000</double>
+              </property>
               <property name="maximum">
-               <number>100</number>
+               <double>3600.000000000000000</double>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_24">
+             <widget class="QLabel" name="unitTopScale">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>dB</string>
+               <string>Ω</string>
               </property>
              </widget>
             </item>
@@ -345,6 +368,11 @@
                 <string>R</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string>∠</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
@@ -353,6 +381,9 @@
            <widget class="QCheckBox" name="autoscale_top">
             <property name="text">
              <string>Auto scale</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -383,10 +414,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="botRef">
+             <widget class="QDoubleSpinBox" name="botRef">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -397,17 +428,29 @@
                </size>
               </property>
               <property name="minimum">
-               <number>-360</number>
+               <double>-3600.000000000000000</double>
               </property>
               <property name="maximum">
-               <number>360</number>
+               <double>3600.000000000000000</double>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_26">
+             <widget class="QLabel" name="unitBotRef">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>degree</string>
+               <string>°</string>
               </property>
              </widget>
             </item>
@@ -429,10 +472,10 @@
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="botScale">
+             <widget class="QDoubleSpinBox" name="botScale">
               <property name="minimumSize">
                <size>
-                <width>50</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
@@ -442,15 +485,24 @@
                 <height>16777215</height>
                </size>
               </property>
-              <property name="maximum">
-               <number>360</number>
-              </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_28">
+             <widget class="QLabel" name="unitBotScale">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>3</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>degree</string>
+               <string>°</string>
               </property>
              </widget>
             </item>
@@ -464,6 +516,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QComboBox" name="view_bot">
+              <property name="currentIndex">
+               <number>4</number>
+              </property>
               <item>
                <property name="text">
                 <string>|Z|</string>
@@ -484,6 +539,11 @@
                 <string>R</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string>∠</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
@@ -492,6 +552,9 @@
            <widget class="QCheckBox" name="autoscale_bot">
             <property name="text">
              <string>Auto scale</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -987,7 +1050,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

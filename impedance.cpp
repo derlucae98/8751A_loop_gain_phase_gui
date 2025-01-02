@@ -36,7 +36,7 @@ void Impedance::init()
 {
     disable_ui();
     ui->statusbar->showMessage("Initializing instrument...");
-    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_Y_REFL, HP8751A::PORT_AR, HP8751A::CONV_OFF);
+    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_Z_REFL, HP8751A::FMT_LINM, HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::FMT_PHAS);
     init_plot();
 }
 
@@ -115,11 +115,11 @@ void Impedance::init_statemachine_sweep()
 
 void Impedance::init_plot()
 {
-    axisX = new QLogValueAxis();
-    axisX->setTitleText("Frequency / Hz");
-    axisX->setLabelFormat("%g");
-    axisX->setBase(10.0);
-    axisX->setMinorTickCount(8);
+    axisXTop = new QLogValueAxis();
+    axisXTop->setTitleText("Frequency / Hz");
+    axisXTop->setLabelFormat("%g");
+    axisXTop->setBase(10.0);
+    axisXTop->setMinorTickCount(8);
 
     QChart *chartTop = nullptr;
     QChartView *chartViewTop = nullptr;
@@ -129,19 +129,24 @@ void Impedance::init_plot()
     chartTop = new QChart();
 
     chartTop->addSeries(top);
-    chartTop->addAxis(axisX, Qt::AlignBottom);
-    top->attachAxis(axisX);
-    top->attachAxis(axisYTop);
-    top->setName(ui->view_top->currentText());
-
+    chartTop->addAxis(axisXTop, Qt::AlignBottom);
     axisYTop->setTitleText("top / dB");
     axisYTop->setLabelFormat("%i");
     chartTop->addAxis(axisYTop, Qt::AlignLeft);
+    top->attachAxis(axisXTop);
+    top->attachAxis(axisYTop);
+    top->setName(ui->view_top->currentText());
 
     chartViewTop = new QChartView(chartTop);
     chartViewTop->setRenderHint(QPainter::Antialiasing);
     layoutTop = new QVBoxLayout(ui->chart_top);
     layoutTop->addWidget(chartViewTop);
+
+    axisXBot = new QLogValueAxis();
+    axisXBot->setTitleText("Frequency / Hz");
+    axisXBot->setLabelFormat("%g");
+    axisXBot->setBase(10.0);
+    axisXBot->setMinorTickCount(8);
 
     QChart *chartBot = nullptr;
     QChartView *chartViewBot = nullptr;
@@ -151,14 +156,13 @@ void Impedance::init_plot()
     chartBot = new QChart();
 
     chartBot->addSeries(bot);
-    chartBot->addAxis(axisX, Qt::AlignBottom);
-    bot->attachAxis(axisX);
-    bot->attachAxis(axisYBot);
-    bot->setName(ui->view_bot->currentText());
-
+    chartBot->addAxis(axisXBot, Qt::AlignBottom);
     axisYBot->setTitleText("bot / °");
     axisYBot->setLabelFormat("%i");
     chartBot->addAxis(axisYBot, Qt::AlignLeft);
+    bot->attachAxis(axisXBot);
+    bot->attachAxis(axisYBot);
+    bot->setName(ui->view_bot->currentText());
 
     chartViewBot = new QChartView(chartBot);
     chartViewBot->setRenderHint(QPainter::Antialiasing);
@@ -251,48 +255,53 @@ void Impedance::plot_data()
     bot->append(botPoints);
     bot->setName(ui->view_bot->currentText());
 
-    axisX->setMin(data.stimulus.first());
-    axisX->setMax(data.stimulus.last());
+    axisXTop->setMin(data.stimulus.first());
+    axisXTop->setMax(data.stimulus.last());
+
+    axisXBot->setMin(data.stimulus.first());
+    axisXBot->setMax(data.stimulus.last());
 
     double topScale;
-    double topRef;
+    double topRefVal;
     if (ui->autoscale_top->isChecked()) {
         ui->topScale->setValue(this->topScale);
-        ui->topRef->setValue(this->topRef);
+        ui->topRef->setValue(this->topRefVal);
         topScale = this->topScale;
-        topRef = this->topRef;
+        topRefVal = this->topRefVal;
     } else {
         topScale = ui->topScale->value();
-        topRef = ui->topRef->value();
+        topRefVal = ui->topRef->value();
     }
 
     axisYTop->setTitleText("Magnitude / dB");
     axisYTop->setLabelFormat("%i");
-    axisYTop->setMin(topRef - 5 * topScale);
-    axisYTop->setMax(topRef + 5 * topScale);
+    axisYTop->setMin(topRefVal - 5 * topScale);
+    axisYTop->setMax(topRefVal + 5 * topScale);
     axisYTop->setTickType(QValueAxis::TicksDynamic);
-    axisYTop->setTickAnchor(topRef);
+    axisYTop->setTickAnchor(topRefVal);
     axisYTop->setTickInterval((axisYTop->max() - axisYTop->min()) / 10);
+    axisYTop->setLabelFormat("%.2f");
 
     double botScale;
-    double botRef;
+    double botRefVal;
     if (ui->autoscale_bot->isChecked()) {
         ui->botScale->setValue(this->botScale);
-        ui->botRef->setValue(this->botRef);
+        ui->botRef->setValue(this->botRefVal);
         botScale = this->botScale;
-        botRef = this->botRef;
+        botRefVal = this->botRefVal;
     } else {
         botScale = ui->botScale->value();
-        botRef = ui->botRef->value();
+        botRefVal = ui->botRef->value();
     }
 
     axisYBot->setTitleText("Phase / °");
     axisYBot->setLabelFormat("%i");
-    axisYBot->setMin(botRef - 5 * botScale);
-    axisYBot->setMax(botRef + 5 * botScale);
+    axisYBot->setMin(botRefVal - 5 * botScale);
+    axisYBot->setMax(botRefVal + 5 * botScale);
     axisYBot->setTickType(QValueAxis::TicksDynamic);
-    axisYBot->setTickAnchor(botRef);
+    axisYBot->setTickAnchor(topRefVal);
     axisYBot->setTickInterval((axisYBot->max() - axisYBot->min()) / 10);
+    axisYBot->setLabelFormat("%.2f");
 }
 
 void Impedance::update_parameters()
@@ -330,14 +339,15 @@ void Impedance::set_parameters_finished()
 void Impedance::new_data(HP8751A::instrument_data_t data)
 {
     topScale = data.channel1Scale;
-    topRef = data.channel1Refpos;
+    topRefVal = data.channel1RefVal;
     botScale = data.channel2Scale;
-    botRef = data.channel2Refpos;
+    botRefVal = data.channel2RefVal;
 }
 
 void Impedance::response_timeout()
 {
     QMessageBox::critical(this, "Connection timeout", "No response from instrument!");
+    ui->statusbar->showMessage("No response from instrument!");
 }
 
 void Impedance::on_autoscale_top_stateChanged(int arg1)
@@ -346,7 +356,7 @@ void Impedance::on_autoscale_top_stateChanged(int arg1)
         ui->topScale->setEnabled(false);
         ui->topRef->setEnabled(false);
         ui->topScale->setValue(this->topScale);
-        ui->topRef->setValue(this->topRef);
+        ui->topRef->setValue(this->topRefVal);
     } else {
         ui->topScale->setEnabled(true);
         ui->topRef->setEnabled(true);
@@ -360,10 +370,92 @@ void Impedance::on_autoscale_bot_stateChanged(int arg1)
         ui->botScale->setEnabled(false);
         ui->botRef->setEnabled(false);
         ui->botScale->setValue(this->botScale);
-        ui->botRef->setValue(this->botRef);
+        ui->botRef->setValue(this->botRefVal);
     } else {
         ui->botScale->setEnabled(true);
         ui->botRef->setEnabled(true);
+    }
+}
+
+
+void Impedance::on_topRef_valueChanged(double arg1)
+{
+    (void) arg1;
+    plot_data();
+}
+
+
+void Impedance::on_topScale_valueChanged(double arg1)
+{
+    (void) arg1;
+    plot_data();
+}
+
+
+void Impedance::on_botRef_valueChanged(double arg1)
+{
+    (void) arg1;
+    plot_data();
+}
+
+
+void Impedance::on_botScale_valueChanged(double arg1)
+{
+    (void) arg1;
+    plot_data();
+}
+
+
+void Impedance::on_view_top_currentIndexChanged(int index)
+{
+    switch (index) {
+    case 0:
+        ui->unitTopRef->setText("Ω");
+        ui->unitTopScale->setText("Ω");
+        break;
+    case 1:
+        ui->unitTopRef->setText("H");
+        ui->unitTopScale->setText("H");
+        break;
+    case 2:
+        ui->unitTopRef->setText("F");
+        ui->unitTopScale->setText("F");
+        break;
+    case 3:
+        ui->unitTopRef->setText("Ω");
+        ui->unitTopScale->setText("Ω");
+        break;
+    case 4:
+        ui->unitTopRef->setText("°");
+        ui->unitTopScale->setText("°");
+        break;
+    }
+}
+
+
+void Impedance::on_view_bot_currentIndexChanged(int index)
+{
+    switch (index) {
+    case 0:
+        ui->unitBotRef->setText("Ω");
+        ui->unitBotScale->setText("Ω");
+        break;
+    case 1:
+        ui->unitBotRef->setText("H");
+        ui->unitBotScale->setText("H");
+        break;
+    case 2:
+        ui->unitBotRef->setText("F");
+        ui->unitBotScale->setText("F");
+        break;
+    case 3:
+        ui->unitBotRef->setText("Ω");
+        ui->unitBotScale->setText("Ω");
+        break;
+    case 4:
+        ui->unitBotRef->setText("°");
+        ui->unitBotScale->setText("°");
+        break;
     }
 }
 

@@ -23,7 +23,7 @@ void HP8751A::identify()
     enqueue_cmd(CMD_IDENTIFY, "*IDN?", -1, CMD_TYPE_QUERY);
 }
 
-void HP8751A::init_function(input_port_t portCh1, conversion_t convCh1, input_port_t portCh2, conversion_t convCh2)
+void HP8751A::init_function(input_port_t portCh1, conversion_t convCh1, format_t fmtCh1, input_port_t portCh2, conversion_t convCh2, format_t fmtCh2)
 {
     QString commands;
     commands.append("LOGFREQ;"); // log sweep
@@ -33,11 +33,11 @@ void HP8751A::init_function(input_port_t portCh1, conversion_t convCh1, input_po
     commands.append("CHAN1;"); // select channel 1
     commands.append(port_to_string(portCh1) + ";"); // Select meas function
     commands.append(conversion_to_string(convCh1) + ";"); // Select conversion
-    commands.append("FMT LOGM;"); // Select format: log magnitude
+    commands.append(format_to_string(fmtCh1) + ";"); // Select format
     commands.append("CHAN2;"); // select channel 2
     commands.append(port_to_string(portCh2) + ";"); // Select meas function
-    commands.append(conversion_to_string(convCh2)); // Select conversion
-
+    commands.append(conversion_to_string(convCh2) + ";"); // Select conversion
+    commands.append(format_to_string(fmtCh2)); // Select format
     enqueue_cmd(CMD_INIT_FUNCTION, commands, -1, CMD_TYPE_COMMAND);
 }
 
@@ -67,9 +67,9 @@ void HP8751A::set_instrument_parameters(instrument_parameters_t param)
     commands.append("CHAN2;");
 
     if (param.unwrapPhase) {
-        commands.append("FMT EXPP;");
+        commands.append(format_to_string(FMT_EXPP) + ";");
     } else {
-        commands.append("FMT PHAS;");
+        commands.append(format_to_string(FMT_PHAS) + ";");
     }
 
     if (param.avgEn) {
@@ -137,10 +137,12 @@ void HP8751A::fit_trace()
     commands.append("AUTO;");
     commands.append("SCAL?;");
     commands.append("REFV?;");
+    commands.append("REFP 5;");
     commands.append("CHAN2;");
     commands.append("AUTO;");
     commands.append("SCAL?;");
     commands.append("REFV?;");
+    commands.append("REFP 5;");
     commands.append("CHAN1");
 
     enqueue_cmd(CMD_FIT_TRACE, commands, -1, CMD_TYPE_QUERY);
@@ -251,6 +253,38 @@ QString HP8751A::ifbw_to_string(ifbw_t ifbw)
         return "IFBW 4000";
     case IFBW_AUTO:
         return "IFBWAUTO";
+    }
+}
+
+QString HP8751A::format_to_string(format_t fmt)
+{
+    switch (fmt) {
+    case FMT_LOGM:
+        return "FMT LOGM";
+    case FMT_PHAS:
+        return "FMT PHAS";
+    case FMT_DELA:
+        return "FMT DELA";
+    case FMT_SMIC:
+        return "FMT SMIC";
+    case FMT_POLA:
+        return "FMT POLA";
+    case FMT_LINM:
+        return "FMT LINM";
+    case FMT_SWR:
+        return "FMT SWR";
+    case FMT_REAL:
+        return "FMT REAL";
+    case FMT_IMAG:
+        return "FMT IMAG";
+    case FMT_EXPP:
+        return "FMT EXPP";
+    case FMT_INVSCHAR:
+        return "FMT INVSCHAR";
+    case FMT_LOGMP:
+        return "FMT LOGMP";
+    case FMT_LOGMD:
+        return "FMT LOGMD";
     }
 }
 
@@ -452,9 +486,9 @@ void HP8751A::instrument_response(command_t cmd, QByteArray resp, qint8 channel)
             QString respStr = resp;
             QStringList respSeparate = respStr.split(";");
             data.channel1Scale = respSeparate.at(0).toFloat();
-            data.channel1Refpos = respSeparate.at(1).toFloat();
+            data.channel1RefVal = respSeparate.at(1).toFloat();
             data.channel2Scale = respSeparate.at(2).toFloat();
-            data.channel2Refpos = respSeparate.at(3).toFloat();
+            data.channel2RefVal = respSeparate.at(3).toFloat();
             emit responseOK(QPrivateSignal());
             break;
         }

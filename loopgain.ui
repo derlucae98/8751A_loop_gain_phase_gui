@@ -216,6 +216,18 @@
             </item>
             <item>
              <widget class="QLabel" name="label_11">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
                <string>dB</string>
               </property>
@@ -262,6 +274,18 @@
             </item>
             <item>
              <widget class="QLabel" name="label_14">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
                <string>dB</string>
               </property>
@@ -329,8 +353,20 @@
             </item>
             <item>
              <widget class="QLabel" name="label_16">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>degree</string>
+               <string>°</string>
               </property>
              </widget>
             </item>
@@ -372,8 +408,20 @@
             </item>
             <item>
              <widget class="QLabel" name="label_18">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
-               <string>degree</string>
+               <string>°</string>
               </property>
              </widget>
             </item>

@@ -44,6 +44,22 @@ public:
         CONV_Y_TRANS
     };
 
+    enum format_t {
+        FMT_LOGM,
+        FMT_PHAS,
+        FMT_DELA,
+        FMT_SMIC,
+        FMT_POLA,
+        FMT_LINM,
+        FMT_SWR,
+        FMT_REAL,
+        FMT_IMAG,
+        FMT_EXPP,
+        FMT_INVSCHAR,
+        FMT_LOGMP,
+        FMT_LOGMD
+    };
+
     struct instrument_parameters_t {
         quint32 fStart; // Start frequency
         quint32 fStop; // Stop frequency
@@ -63,16 +79,16 @@ public:
         QVector<float> channel1;
         QVector<float> channel2;
         float channel1Scale;
-        float channel1Refpos;
+        float channel1RefVal;
         float channel2Scale;
-        float channel2Refpos;
+        float channel2RefVal;
     };
 
     // Identify the HP 8751A on the bus
     void identify();
 
     // Init basic measurement functions
-    void init_function(input_port_t portCh1, conversion_t convCh1, input_port_t portCh2, conversion_t convCh2);
+    void init_function(input_port_t portCh1, conversion_t convCh1, format_t fmtCh1, input_port_t portCh2, conversion_t convCh2, format_t fmtCh2);
 
     void set_instrument_parameters(instrument_parameters_t param);
 
@@ -146,6 +162,7 @@ private:
     QString port_to_string(input_port_t port);
     QString conversion_to_string(conversion_t conv);
     QString ifbw_to_string(ifbw_t ifbw);
+    QString format_to_string(format_t fmt);
 
     void enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type);
     bool nextCmd;

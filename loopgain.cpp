@@ -36,7 +36,7 @@ void Loopgain::init()
 {
     disable_ui();
     ui->statusbar->showMessage("Initializing instrument...");
-    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::PORT_AR, HP8751A::CONV_OFF);
+    hp->init_function(HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::FMT_LOGM, HP8751A::PORT_AR, HP8751A::CONV_OFF, HP8751A::FMT_PHAS);
     init_plot();
 }
 
@@ -218,6 +218,7 @@ void Loopgain::plot_data()
     axisY->setTickType(QValueAxis::TicksDynamic);
     axisY->setTickAnchor(magnitudeRef);
     axisY->setTickInterval((axisY->max() - axisY->min()) / 10);
+    axisY->setLabelFormat("%.2f");
 
     double phaseScale;
     double phaseRef;
@@ -238,6 +239,7 @@ void Loopgain::plot_data()
     axisYPhase->setTickType(QValueAxis::TicksDynamic);
     axisYPhase->setTickAnchor(phaseRef);
     axisYPhase->setTickInterval((axisYPhase->max() - axisYPhase->min()) / 10);
+    axisYPhase->setLabelFormat("%.2f");
 }
 
 void Loopgain::update_parameters()
@@ -321,14 +323,15 @@ void Loopgain::set_parameters_finished()
 void Loopgain::new_data(HP8751A::instrument_data_t data)
 {
     magnitudeScale = data.channel1Scale;
-    magnitudeRef = data.channel1Refpos;
+    magnitudeRef = data.channel1RefVal;
     phaseScale = data.channel2Scale;
-    phaseRef = data.channel2Refpos;
+    phaseRef = data.channel2RefVal;
 }
 
 void Loopgain::response_timeout()
 {
     QMessageBox::critical(this, "Connection timeout", "No response from instrument!");
+    ui->statusbar->showMessage("No response from instrument!");
 }
 
 void Loopgain::on_aAutoscale_stateChanged(int arg1)

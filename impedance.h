@@ -33,16 +33,17 @@ private:
     void plot_data();
     void update_parameters();
 
-    QLogValueAxis *axisX = nullptr;
+    QLogValueAxis *axisXTop = nullptr;
+    QLogValueAxis *axisXBot = nullptr;
     QValueAxis *axisYTop = nullptr;
     QValueAxis *axisYBot = nullptr;
     QLineSeries *top = nullptr;
     QLineSeries *bot = nullptr;
 
     float topScale;
-    float topRef;
+    float topRefVal;
     float botScale;
-    float botRef;
+    float botRefVal;
 
 public slots:
     void instrument_initialized();
@@ -57,6 +58,12 @@ signals:
 private slots:
     void on_autoscale_top_stateChanged(int arg1);
     void on_autoscale_bot_stateChanged(int arg1);
+    void on_topRef_valueChanged(double arg1);
+    void on_topScale_valueChanged(double arg1);
+    void on_botRef_valueChanged(double arg1);
+    void on_botScale_valueChanged(double arg1);
+    void on_view_top_currentIndexChanged(int index);
+    void on_view_bot_currentIndexChanged(int index);
 };
 
 #endif // IMPEDANCE_H
