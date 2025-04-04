@@ -566,3 +566,40 @@ void Impedance::on_view_bot_currentIndexChanged(int index)
     plot_data();
 }
 
+
+void Impedance::on_btnExport_clicked()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), "data", tr("CSV-Files (*.csv)"));
+    QFile file(fileName + ".csv");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        ui->statusbar->showMessage("Could not open file!");
+        return;
+    }
+    QTextStream out(&file);
+
+    QVector<QString> complex;
+
+    HP8751A::instrument_data_t data;
+    hp->get_data(data);
+
+    // Calculate complex number from magnitude and phase
+    for (int i = 0; i < data.stimulus.size(); i++) {
+        double magnitudeLin = std::pow(10, data.channel1.at(i) / 20);
+        double phaseRadian = data.channel2.at(i) * M_PI / 180;
+        double a = magnitudeLin * std::cos(phaseRadian);
+        double b = magnitudeLin * std::sin(phaseRadian);
+        complex.push_back(QString("%1%2%3j").arg(a, 0, 'E').arg(b > 0 ? "+" : "").arg(b, 0, 'E'));
+    }
+
+    //Write header
+    out << "Frequency [Hz],Magnitude [dB],Phase [deg],complex number\r\n";
+
+    for (int i = 0; i < data.stimulus.size(); i++) {
+        out << QString("%1,%2,%3,%4\r\n").arg(data.stimulus.at(i), 0, 'E').arg(data.channel1.at(i), 0, 'E')
+                   .arg(data.channel2.at(i), 0, 'E').arg(complex.at(i));
+    }
+
+    file.close();
+    ui->statusbar->showMessage("File written!");
+}
+

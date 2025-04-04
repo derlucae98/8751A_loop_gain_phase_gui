@@ -76,6 +76,7 @@ private slots:
     void on_botScale_valueChanged(double arg1);
     void on_view_top_currentIndexChanged(int index);
     void on_view_bot_currentIndexChanged(int index);
+    void on_btnExport_clicked();
 };
 
 #endif // IMPEDANCE_H
