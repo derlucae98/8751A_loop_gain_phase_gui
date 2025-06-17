@@ -294,6 +294,10 @@ void HP8751A::gpib_response(QByteArray resp)
     static quint32 bytesReceived;
     static QByteArray respMerge;
 
+    if (cmdQueue.isEmpty()) {
+        return;
+    }
+
     if (cmdQueue.first().cmd == CMD_GET_DATA ||
         cmdQueue.first().cmd == CMD_GET_STIMULUS) {
 
