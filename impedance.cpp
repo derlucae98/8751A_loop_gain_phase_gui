@@ -413,7 +413,6 @@ void Impedance::set_parameters_finished()
     }
 
     if (cal) {
-        qDebug() << "Starte cal dialog";
         cal->init();
     }
 }
