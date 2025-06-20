@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    calibratedialog.cpp \
     hp8751a.cpp \
     impedance.cpp \
     loopgain.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
     startdialog.cpp
 
 HEADERS += \
+    calibratedialog.h \
     hp8751a.h \
     impedance.h \
     loopgain.h \
@@ -26,6 +28,7 @@ HEADERS += \
     startdialog.h
 
 FORMS += \
+    calibratedialog.ui \
     impedance.ui \
     loopgain.ui \
     networksettingsdialog.ui \

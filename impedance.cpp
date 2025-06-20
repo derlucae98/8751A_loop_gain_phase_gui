@@ -411,6 +411,11 @@ void Impedance::set_parameters_finished()
         initialized = true;
         init_statemachine_sweep();
     }
+
+    if (cal) {
+        qDebug() << "Starte cal dialog";
+        cal->init();
+    }
 }
 
 void Impedance::new_data(HP8751A::instrument_data_t data)
@@ -601,5 +606,28 @@ void Impedance::on_btnExport_clicked()
 
     file.close();
     ui->statusbar->showMessage("File written!");
+}
+
+
+void Impedance::on_btnCalibrate_clicked()
+{
+    update_parameters();
+
+    cal = new CalibrateDialog(hp, this);
+    cal->setModal(true);
+    QObject::connect(cal, &CalibrateDialog::rejected, this, [=] {
+        cal->deleteLater();
+    });
+
+    QObject::connect(cal, &CalibrateDialog::accepted, this, [=] {
+        hp->set_cal_done();
+        cal->deleteLater();
+    });
+
+    QObject::connect(cal, &CalibrateDialog::destroyed, this, [=] {
+        cal = nullptr;
+    });
+
+    cal->exec();
 }
 

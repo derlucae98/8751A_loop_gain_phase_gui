@@ -108,6 +108,50 @@ void HP8751A::get_data(instrument_data_t &data)
     data = this->data;
 }
 
+void HP8751A::init_cal()
+{
+    QString commands;
+    commands.append(QString("CALI%1;").arg(cal_type_to_string(CAL_TYPE_S111)));
+    commands.append("CALK7MM;");
+    enqueue_cmd(CMD_INIT_CAL, commands, -1, CMD_TYPE_COMMAND);
+}
+
+void HP8751A::measure_cal_std(cal_std_t cal)
+{
+    QString commands;
+    commands.append(QString("CLASS11%1;").arg(cal_std_to_class(cal)));
+    enqueue_cmd(CMD_MEAS_CAL_STD, commands, -1, CMD_TYPE_COMMAND);
+
+    QStateMachine *smPollHold = new QStateMachine(this);
+    QState *sPollHold = new QState();
+    QState *sHold = new QState();
+
+    QObject::connect(sPollHold, &QState::entered, this, &HP8751A::poll_hold);
+    sPollHold->addTransition(this, &HP8751A::responseOK, sHold);
+    sPollHold->addTransition(this, &HP8751A::responseNOK, sPollHold);
+
+    QObject::connect(sHold, &QState::entered, this, [=] {
+        emit cal_done();
+        smPollHold->stop();
+        sPollHold->deleteLater();
+        sHold->deleteLater();
+        smPollHold->deleteLater();
+    });
+
+    smPollHold->addState(sPollHold);
+    smPollHold->addState(sHold);
+    smPollHold->setInitialState(sPollHold);
+    smPollHold->start();
+}
+
+void HP8751A::set_cal_done()
+{
+    QString commands;
+    commands.append("SAV1;");
+    commands.append("CORRON");
+    enqueue_cmd(CMD_SET_CAL_DONE, commands, -1, CMD_TYPE_COMMAND);
+}
+
 void HP8751A::start_sweep()
 {
     QString commands;
@@ -285,6 +329,56 @@ QString HP8751A::format_to_string(format_t fmt)
         return "FMT LOGMP";
     case FMT_LOGMD:
         return "FMT LOGMD";
+    }
+}
+
+QString HP8751A::cal_type_to_string(cal_type_t cal)
+{
+    switch (cal) {
+        case CAL_TYPE_NONE:
+            return "NONE";
+        case CAL_TYPE_RESP:
+            return "RESP";
+        case CAL_TYPE_RAI:
+            return "RAI";
+        case CAL_TYPE_S111:
+            return "S111";
+        case CAL_TYPE_S221:
+            return "S211";
+        case CAL_TYPE_FUL2:
+            return "FUL2";
+        case CAL_TYPE_ONE2:
+            return "ONE2";
+    }
+}
+
+QString HP8751A::cal_std_to_string(cal_std_t cal)
+{
+    switch (cal) {
+    case CAL_OPEN:
+        return "OPEN";
+    case CAL_SHORT:
+        return "SHOR";
+    case CAL_LOAD:
+        return "LOAD";
+    case CAL_DELAY:
+        return "DELA";
+    case CAL_ARBI:
+        return "ARBI";
+    }
+}
+
+QString HP8751A::cal_std_to_class(cal_std_t cal)
+{
+    switch (cal) {
+    case CAL_OPEN:
+        return "A";
+    case CAL_SHORT:
+        return "B";
+    case CAL_LOAD:
+        return "C";
+    default:
+        return "";
     }
 }
 

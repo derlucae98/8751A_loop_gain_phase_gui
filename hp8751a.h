@@ -60,6 +60,14 @@ public:
         FMT_LOGMD
     };
 
+    enum cal_std_t {
+        CAL_OPEN,
+        CAL_SHORT,
+        CAL_LOAD,
+        CAL_DELAY,
+        CAL_ARBI
+    };
+
     struct instrument_parameters_t {
         quint32 fStart; // Start frequency
         quint32 fStop; // Stop frequency
@@ -103,6 +111,15 @@ public:
 
     // Get stimulus and channel data from local buffer
     void get_data(HP8751A::instrument_data_t &data);
+
+    // Init calibration
+    void init_cal();
+
+    // Measure cal standard
+    void measure_cal_std(cal_std_t cal);
+
+    // Compute cal parameters
+    void set_cal_done();
 
 private:
     PrologixGPIB *gpib = nullptr;
@@ -149,7 +166,20 @@ private:
         CMD_POLL_HOLD,
         CMD_FIT_TRACE,
         CMD_GET_STIMULUS,
-        CMD_GET_DATA
+        CMD_GET_DATA,
+        CMD_INIT_CAL,
+        CMD_MEAS_CAL_STD,
+        CMD_SET_CAL_DONE
+    };
+
+    enum cal_type_t {
+        CAL_TYPE_NONE,
+        CAL_TYPE_RESP,
+        CAL_TYPE_RAI,
+        CAL_TYPE_S111,
+        CAL_TYPE_S221,
+        CAL_TYPE_FUL2,
+        CAL_TYPE_ONE2
     };
 
     struct cmd_queue_t {
@@ -163,6 +193,9 @@ private:
     QString conversion_to_string(conversion_t conv);
     QString ifbw_to_string(ifbw_t ifbw);
     QString format_to_string(format_t fmt);
+    QString cal_type_to_string(cal_type_t cal);
+    QString cal_std_to_string(cal_std_t cal);
+    QString cal_std_to_class(cal_std_t cal);
 
     void enqueue_cmd(command_t cmd, QString cmdString, qint8 channel, cmd_type_t type);
     bool nextCmd;
@@ -180,6 +213,7 @@ signals:
     void new_data(HP8751A::instrument_data_t);
     void sweep_cancelled();
     void response_timeout();
+    void cal_done();
 
     // Private signals
     void responseOK(QPrivateSignal);

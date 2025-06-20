@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QtCharts>
 #include <complex.h>
+#include "calibratedialog.h"
 
 namespace Ui {
 class Impedance;
@@ -56,6 +57,8 @@ private:
     std::tuple<float, float> find_min_max(QList<QPointF> &points);
     float round_one_decimal(float value);
 
+    CalibrateDialog *cal = nullptr;
+
 
 public slots:
     void instrument_initialized();
@@ -77,6 +80,7 @@ private slots:
     void on_view_top_currentIndexChanged(int index);
     void on_view_bot_currentIndexChanged(int index);
     void on_btnExport_clicked();
+    void on_btnCalibrate_clicked();
 };
 
 #endif // IMPEDANCE_H
